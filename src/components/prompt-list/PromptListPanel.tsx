@@ -137,6 +137,7 @@ export function PromptListPanel() {
               prompt={prompt}
               isSelected={selectedPrompt?.meta.id === prompt.id}
               isFocused={focusedIndex === index}
+              index={index}
             />
           ))
         )}

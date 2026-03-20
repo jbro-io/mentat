@@ -1,5 +1,6 @@
 import { usePromptStore } from "../../stores/usePromptStore";
 import { useFilterStore } from "../../stores/useFilterStore";
+import { Button } from "../ui";
 
 export function TagList() {
   const tags = usePromptStore((s) => s.tags);
@@ -20,17 +21,19 @@ export function TagList() {
       <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Tags</h2>
       <div className="flex flex-wrap gap-1">
         {tags.map((tag) => (
-          <button
+          <Button
             key={tag}
+            variant="ghost"
+            size="sm"
             onClick={() => toggleTag(tag)}
-            className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
+            className={`rounded-full ${
               activeTags?.includes(tag)
-                ? "bg-mentat-accent text-black font-medium"
+                ? "bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover"
                 : "bg-mentat-bg-raised text-zinc-400 hover:bg-mentat-bg-surface"
             }`}
           >
             {tag}
-          </button>
+          </Button>
         ))}
         {tags.length === 0 && (
           <p className="text-xs text-zinc-600">No tags yet</p>

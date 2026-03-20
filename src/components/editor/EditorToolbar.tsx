@@ -4,6 +4,16 @@ import { useUIStore } from "../../stores/useUIStore";
 import { useToastStore } from "../../stores/useToastStore";
 import { useStagingStore } from "../../stores/useStagingStore";
 import * as api from "../../lib/tauri";
+import {
+  Button,
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "../ui";
 
 interface Props {
   prompt: Prompt;
@@ -28,9 +38,7 @@ export function EditorToolbar({ prompt }: Props) {
   };
 
   const handleDelete = async () => {
-    if (confirm(`Delete "${prompt.meta.title}"?`)) {
-      await deletePrompt(prompt.file_path);
-    }
+    await deletePrompt(prompt.file_path);
   };
 
   return (
@@ -39,45 +47,69 @@ export function EditorToolbar({ prompt }: Props) {
         {prompt.meta.title}
       </h2>
       <div className="flex items-center gap-2">
-        <button
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() =>
             setEditorPreference(
               editorPreference === "codemirror" ? "neovim" : "codemirror",
             )
           }
-          className="text-xs px-2 py-1 rounded bg-mentat-bg-raised text-zinc-500 hover:text-zinc-200 hover:bg-mentat-bg-surface transition-colors font-mono"
+          className="text-zinc-500 hover:text-zinc-200 font-mono"
           title={`Switch to ${editorPreference === "codemirror" ? "Neovim" : "CodeMirror"}`}
         >
           {editorPreference === "codemirror" ? "CM" : "NV"}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() =>
             setEditorMode(editorMode === "edit" ? "preview" : "edit")
           }
-          className="text-xs px-2 py-1 rounded bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-surface transition-colors"
         >
           {editorMode === "edit" ? "Preview" : "Edit"}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="primary"
+          size="sm"
           onClick={handleCopy}
-          className="text-xs px-2 py-1 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover transition-colors"
           title="Copy to clipboard (Cmd+Shift+C)"
         >
           Copy
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => stagePrompt(prompt)}
-          className="text-xs px-2 py-1 rounded bg-mentat-accent-muted text-mentat-accent hover:bg-mentat-bg-surface hover:text-mentat-accent transition-colors"
+          className="bg-mentat-accent-muted text-mentat-accent hover:bg-mentat-bg-surface hover:text-mentat-accent"
           title="Stage prompt (Cmd+D)"
         >
           Stage
-        </button>
-        <button
-          onClick={handleDelete}
-          className="text-xs px-2 py-1 rounded bg-mentat-bg-raised text-red-400 hover:bg-red-900/30 hover:text-red-300 transition-colors"
-        >
-          Delete
-        </button>
+        </Button>
+        <AlertDialog>
+          <AlertDialogTrigger asChild>
+            <Button variant="danger" size="sm">
+              Delete
+            </Button>
+          </AlertDialogTrigger>
+          <AlertDialogContent>
+            <div className="p-4 space-y-3">
+              <AlertDialogTitle>Delete &ldquo;{prompt.meta.title}&rdquo;?</AlertDialogTitle>
+              <AlertDialogDescription>
+                This action cannot be undone. The prompt file will be permanently deleted.
+              </AlertDialogDescription>
+              <div className="flex justify-end gap-2 pt-2">
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={handleDelete}
+                  className="bg-red-600 text-white hover:bg-red-700"
+                >
+                  Delete
+                </AlertDialogAction>
+              </div>
+            </div>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

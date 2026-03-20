@@ -2,6 +2,22 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import type { PromptType } from "../../types/prompt";
 import { usePromptStore } from "../../stores/usePromptStore";
 import * as api from "../../lib/tauri";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogFooter,
+  DialogTitle,
+  Input,
+  Label,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Checkbox,
+  Button,
+} from "../ui";
 
 const PROMPT_TYPES: PromptType[] = ["system-prompt", "skill", "template", "snippet"];
 const TARGET_OPTIONS = ["claude", "openai"];
@@ -77,24 +93,18 @@ export function NewPromptDialog({ open, onClose }: Props) {
     }
   }, [title, type, targets, tags, isSubmitting, fetchPrompts, fetchTags, fetchFolders, selectPrompt, onClose]);
 
-  if (!open) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-start justify-center pt-[15vh]">
-      <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm"
-        onClick={onClose}
-      />
-      <div className="relative w-[480px] bg-mentat-bg border border-mentat-border rounded-xl shadow-2xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-mentat-border">
-          <h2 className="text-sm font-medium text-zinc-200">New Prompt</h2>
-        </div>
+    <Dialog open={open} onOpenChange={(isOpen) => { if (!isOpen) onClose(); }}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>New Prompt</DialogTitle>
+        </DialogHeader>
 
         <div className="p-4 space-y-4">
           {/* Title */}
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Title</label>
-            <input
+            <Label>Title</Label>
+            <Input
               ref={titleRef}
               type="text"
               value={title}
@@ -104,50 +114,48 @@ export function NewPromptDialog({ open, onClose }: Props) {
                 if (e.key === "Escape") onClose();
               }}
               placeholder="My Prompt"
-              className="w-full bg-mentat-bg-raised border border-mentat-border rounded-md px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent"
             />
           </div>
 
           {/* Type */}
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Type</label>
-            <select
-              value={type}
-              onChange={(e) => setType(e.target.value as PromptType)}
-              className="w-full bg-mentat-bg-raised border border-mentat-border rounded-md px-3 py-1.5 text-sm text-zinc-200 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent"
-            >
-              {PROMPT_TYPES.map((pt) => (
-                <option key={pt} value={pt}>
-                  {pt}
-                </option>
-              ))}
-            </select>
+            <Label>Type</Label>
+            <Select value={type} onValueChange={(v) => setType(v as PromptType)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PROMPT_TYPES.map((pt) => (
+                  <SelectItem key={pt} value={pt}>
+                    {pt}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
           {/* Target */}
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Target</label>
+            <Label>Target</Label>
             <div className="flex gap-3">
               {TARGET_OPTIONS.map((t) => (
-                <label
+                <Label
                   key={t}
                   className="flex items-center gap-1.5 text-sm text-zinc-300 cursor-pointer"
                 >
-                  <input
-                    type="checkbox"
+                  <Checkbox
                     checked={targets.includes(t)}
-                    onChange={() => toggleTarget(t)}
-                    className="rounded border-zinc-600 bg-mentat-bg-raised text-mentat-accent focus:ring-mentat-accent focus:ring-offset-0"
+                    onCheckedChange={() => toggleTarget(t)}
                   />
                   {t}
-                </label>
+                </Label>
               ))}
             </div>
           </div>
 
           {/* Tags */}
           <div>
-            <label className="block text-xs text-zinc-500 mb-1">Tags</label>
+            <Label>Tags</Label>
             <div className="flex flex-wrap gap-1 mb-2">
               {tags.map((tag) => (
                 <span
@@ -155,16 +163,18 @@ export function NewPromptDialog({ open, onClose }: Props) {
                   className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-mentat-bg-raised text-zinc-400 rounded-full"
                 >
                   {tag}
-                  <button
+                  <Button
+                    variant="ghost"
+                    size="sm"
                     onClick={() => removeTag(tag)}
-                    className="text-zinc-600 hover:text-zinc-300 transition-colors"
+                    className="p-0 text-zinc-600 hover:text-zinc-300"
                   >
                     x
-                  </button>
+                  </Button>
                 </span>
               ))}
             </div>
-            <input
+            <Input
               type="text"
               value={tagInput}
               onChange={(e) => setTagInput(e.target.value)}
@@ -176,27 +186,24 @@ export function NewPromptDialog({ open, onClose }: Props) {
                 if (e.key === "Escape") onClose();
               }}
               placeholder="Add tag and press Enter"
-              className="w-full bg-mentat-bg-raised border border-mentat-border rounded-md px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent"
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 px-4 py-3 border-t border-mentat-border bg-mentat-bg">
-          <button
-            onClick={onClose}
-            className="text-xs px-3 py-1.5 rounded bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 transition-colors"
-          >
+        <DialogFooter>
+          <Button variant="secondary" size="sm" onClick={onClose}>
             Cancel
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={handleSubmit}
             disabled={!title.trim() || isSubmitting}
-            className="text-xs px-3 py-1.5 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Creating..." : "Create"}
-          </button>
-        </div>
-      </div>
-    </div>
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }

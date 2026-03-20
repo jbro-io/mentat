@@ -6,6 +6,7 @@ import { useComposeStore } from "../../stores/useComposeStore";
 import { useFilterStore } from "../../stores/useFilterStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { PromptType } from "../../types/prompt";
+import { Button } from "../ui";
 
 const PROMPT_TYPES: { value: PromptType; label: string }[] = [
   { value: "system-prompt", label: "System Prompt" },
@@ -32,24 +33,27 @@ export function Sidebar() {
           Mentat
         </h1>
         <div className="flex items-center gap-1.5">
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={toggleComposing}
-            className={`text-xs px-2 py-0.5 rounded transition-colors ${
+            className={
               isComposing
-                ? "bg-mentat-accent text-black font-medium"
+                ? "bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover"
                 : "bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-surface"
-            }`}
+            }
             title="Toggle Compose Mode"
           >
             Compose
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => setNewPromptDialogOpen(true)}
-            className="text-xs px-2 py-0.5 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover transition-colors"
             title="New Prompt (Cmd+N)"
           >
             + New
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -61,30 +65,34 @@ export function Sidebar() {
           <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
             Type
           </h2>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setTypeFilter(undefined)}
-            className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
+            className={`w-full justify-start text-sm px-2 py-1 ${
               !activeType
                 ? "bg-mentat-bg-raised text-zinc-100"
                 : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
             }`}
           >
             All Types
-          </button>
+          </Button>
           {PROMPT_TYPES.map((pt) => (
-            <button
+            <Button
               key={pt.value}
+              variant="ghost"
+              size="sm"
               onClick={() =>
                 setTypeFilter(activeType === pt.value ? undefined : pt.value)
               }
-              className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
+              className={`w-full justify-start text-sm px-2 py-1 ${
                 activeType === pt.value
                   ? "bg-mentat-bg-raised text-zinc-100"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
               }`}
             >
               {pt.label}
-            </button>
+            </Button>
           ))}
         </div>
 
@@ -93,30 +101,34 @@ export function Sidebar() {
           <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
             Target
           </h2>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setTargetFilter(undefined)}
-            className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
+            className={`w-full justify-start text-sm px-2 py-1 ${
               !activeTarget
                 ? "bg-mentat-bg-raised text-zinc-100"
                 : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
             }`}
           >
             All Targets
-          </button>
+          </Button>
           {TARGET_OPTIONS.map((t) => (
-            <button
+            <Button
               key={t}
+              variant="ghost"
+              size="sm"
               onClick={() =>
                 setTargetFilter(activeTarget === t ? undefined : t)
               }
-              className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
+              className={`w-full justify-start text-sm px-2 py-1 ${
                 activeTarget === t
                   ? "bg-mentat-bg-raised text-zinc-100"
                   : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
               }`}
             >
               {t}
-            </button>
+            </Button>
           ))}
         </div>
 

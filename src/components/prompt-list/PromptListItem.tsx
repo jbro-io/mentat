@@ -6,6 +6,7 @@ interface Props {
   prompt: PromptSummary;
   isSelected: boolean;
   isFocused?: boolean;
+  index: number;
 }
 
 const typeColors: Record<string, string> = {
@@ -15,7 +16,7 @@ const typeColors: Record<string, string> = {
   snippet: "bg-purple-900/50 text-purple-300",
 };
 
-export function PromptListItem({ prompt, isSelected, isFocused }: Props) {
+export function PromptListItem({ prompt, isSelected, isFocused, index }: Props) {
   const selectPrompt = usePromptStore((s) => s.selectPrompt);
   const isComposing = useComposeStore((s) => s.isComposing);
   const selectedPaths = useComposeStore((s) => s.selectedPaths);
@@ -36,7 +37,8 @@ export function PromptListItem({ prompt, isSelected, isFocused }: Props) {
     <button
       data-prompt-item
       onClick={handleClick}
-      className={`w-full text-left px-3 py-2 border-b border-mentat-border/50 transition-colors ${
+      style={{ animationDelay: `${Math.min(index * 20, 300)}ms` }}
+      className={`w-full text-left px-3 py-2 border-b border-mentat-border/50 animate-[listItemIn_150ms_cubic-bezier(0.16,1,0.3,1)_both] transition-all duration-150 ${
         isComposing && isComposeSelected
           ? "bg-mentat-accent-muted ring-1 ring-inset ring-mentat-accent/40"
           : isSelected && !isComposing

@@ -6,6 +6,7 @@ import { NeovimEditor } from "./NeovimEditor";
 import { MetadataForm } from "./MetadataForm";
 import { EditorToolbar } from "./EditorToolbar";
 import { StagingPanel } from "../staging/StagingPanel";
+import { Button } from "../ui";
 
 export function EditorPanel() {
   const selectedPrompt = usePromptStore((s) => s.selectedPrompt);
@@ -30,12 +31,13 @@ export function EditorPanel() {
             </kbd>{" "}
             to search
           </p>
-          <button
+          <Button
+            variant="primary"
+            size="md"
             onClick={() => setNewPromptDialogOpen(true)}
-            className="text-sm px-3 py-1.5 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover transition-colors"
           >
             Create New Prompt
-          </button>
+          </Button>
         </div>
       </div>
     );
@@ -45,7 +47,11 @@ export function EditorPanel() {
     <div className="h-full flex flex-col bg-mentat-bg">
       <EditorToolbar prompt={selectedPrompt} />
       <MetadataForm prompt={selectedPrompt} />
-      <div className="flex-1 overflow-hidden">
+      <div
+        key={editorMode + (isStaging ? "-staging" : "")}
+        className="flex-1 overflow-hidden"
+        style={{ animation: "fadeIn var(--motion-duration-normal) var(--motion-ease) both" }}
+      >
         {editorMode === "edit" ? (
           editorPreference === "neovim" ? (
             <NeovimEditor prompt={selectedPrompt} />

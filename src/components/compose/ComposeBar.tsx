@@ -1,5 +1,6 @@
 import { useComposeStore } from "../../stores/useComposeStore";
 import { usePromptStore } from "../../stores/usePromptStore";
+import { Button } from "../ui";
 
 export function ComposeBar() {
   const selectedPaths = useComposeStore((s) => s.selectedPaths);
@@ -28,24 +29,18 @@ export function ComposeBar() {
   };
 
   return (
-    <div className="border-t border-mentat-border bg-mentat-bg-raised px-4 py-3">
+    <div className="border-t border-mentat-border bg-mentat-bg-raised px-4 py-3 animate-[slideUpIn_200ms_cubic-bezier(0.16,1,0.3,1)_both]">
       <div className="flex items-center justify-between mb-2">
         <h3 className="text-xs font-medium text-mentat-accent uppercase tracking-wider">
           Compose Queue ({selectedPaths.length})
         </h3>
         <div className="flex items-center gap-2">
-          <button
-            onClick={clearSelection}
-            className="text-xs px-2 py-1 rounded bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-surface transition-colors"
-          >
+          <Button variant="secondary" size="sm" onClick={clearSelection}>
             Clear
-          </button>
-          <button
-            onClick={handleCompose}
-            className="text-xs px-3 py-1 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover transition-colors"
-          >
+          </Button>
+          <Button variant="primary" size="sm" onClick={handleCompose}>
             Compose & Stage
-          </button>
+          </Button>
         </div>
       </div>
       <div className="flex flex-wrap gap-1">
@@ -61,35 +56,41 @@ export function ComposeBar() {
               {getTitleForPath(filePath)}
             </span>
             <div className="flex items-center gap-0.5 ml-1">
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => reorder(index, index - 1)}
                 disabled={index === 0}
-                className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-0 text-zinc-500 hover:text-zinc-300 disabled:opacity-30"
                 title="Move up"
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                   <path d="M5 2L2 6h6L5 2z" fill="currentColor" />
                 </svg>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => reorder(index, index + 1)}
                 disabled={index === selectedPaths.length - 1}
-                className="text-zinc-500 hover:text-zinc-300 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-0 text-zinc-500 hover:text-zinc-300 disabled:opacity-30"
                 title="Move down"
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                   <path d="M5 8L2 4h6L5 8z" fill="currentColor" />
                 </svg>
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
                 onClick={() => toggleSelection(filePath)}
-                className="text-zinc-500 hover:text-red-400 ml-0.5"
+                className="p-0 text-zinc-500 hover:text-red-400 ml-0.5"
                 title="Remove"
               >
                 <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
                   <path d="M2 2l6 6M8 2l-6 6" stroke="currentColor" strokeWidth="1.5" />
                 </svg>
-              </button>
+              </Button>
             </div>
           </div>
         ))}

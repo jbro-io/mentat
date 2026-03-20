@@ -1,5 +1,6 @@
 import { usePromptStore } from "../../stores/usePromptStore";
 import { useFilterStore } from "../../stores/useFilterStore";
+import { Button } from "../ui";
 
 export function FolderTree() {
   const folders = usePromptStore((s) => s.folders);
@@ -22,9 +23,11 @@ export function FolderTree() {
       <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
         Folders
       </h2>
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => setFolderFilter(undefined)}
-        className={`w-full text-left text-sm px-2 py-1 rounded flex items-center justify-between transition-colors ${
+        className={`w-full justify-between text-sm px-2 py-1 flex items-center ${
           !activeFolder
             ? "bg-mentat-bg-raised text-zinc-100"
             : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
@@ -32,12 +35,14 @@ export function FolderTree() {
       >
         <span>All Prompts</span>
         <span className="text-[10px] text-zinc-500">{prompts.length}</span>
-      </button>
+      </Button>
       {folders.map((folder) => (
-        <button
+        <Button
           key={folder}
+          variant="ghost"
+          size="sm"
           onClick={() => setFolderFilter(folder)}
-          className={`w-full text-left text-sm px-2 py-1 rounded flex items-center justify-between transition-colors ${
+          className={`w-full justify-between text-sm px-2 py-1 flex items-center ${
             activeFolder === folder
               ? "bg-mentat-bg-raised text-zinc-100"
               : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
@@ -47,7 +52,7 @@ export function FolderTree() {
           <span className="text-[10px] text-zinc-500">
             {folderCounts[folder] || 0}
           </span>
-        </button>
+        </Button>
       ))}
     </div>
   );

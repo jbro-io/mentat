@@ -19,6 +19,11 @@
   --color-text-secondary: #6B8A95;
   --color-accent: #04FFA4;
   --color-accent-hover: #33FFB8;
+  --motion-ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --motion-ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --motion-duration-fast: 120ms;
+  --motion-duration: 150ms;
+  --motion-duration-normal: 200ms;
 }
 
 body {
@@ -65,18 +70,63 @@ body {
   outline-offset: -1px;
 }
 
-/* Select styling for dark mode */
-select {
-  appearance: auto;
-  background-color: #0D1B24;
+/* Animation keyframes */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
 }
 
-select option {
-  background-color: #0D1B24;
-  color: #d4d4d8;
+@keyframes fadeOut {
+  from { opacity: 1; }
+  to { opacity: 0; }
 }
 
-/* Checkbox styling */
-input[type="checkbox"] {
-  accent-color: var(--color-accent);
+@keyframes scaleIn {
+  from { transform: scale(0.8) translateY(-20px); opacity: 0; }
+  to { transform: scale(1) translateY(0); opacity: 1; }
+}
+
+@keyframes scaleOut {
+  from { transform: scale(1) translateY(0); opacity: 1; }
+  to { transform: scale(0.85) translateY(-12px); opacity: 0; }
+}
+
+@keyframes slideDown {
+  from { transform: translateY(0); opacity: 1; }
+  to { transform: translateY(8px); opacity: 0; }
+}
+
+@keyframes slideUpIn {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes listItemIn {
+  from { transform: translateY(4px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* Reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Global button press effect */
+button {
+  transition: background-color var(--motion-duration-fast) var(--motion-ease-in-out),
+              color var(--motion-duration-fast) var(--motion-ease-in-out),
+              transform var(--motion-duration-fast) var(--motion-ease-in-out),
+              opacity var(--motion-duration-fast) var(--motion-ease-in-out);
+}
+button:not(:disabled):active {
+  transform: scale(0.97);
+}
+.xterm button:active { transform: none; }
+
+/* Page load fade-in */
+#root {
+  animation: fadeIn var(--motion-duration-normal) var(--motion-ease) both;
 }

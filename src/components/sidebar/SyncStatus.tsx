@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useGitStore } from "../../stores/useGitStore";
+import { Button, Input } from "../ui";
 
 export function SyncStatus() {
   const status = useGitStore((s) => s.status);
@@ -34,17 +35,19 @@ export function SyncStatus() {
       <div className="p-3 border-t border-mentat-border space-y-2">
         <div className="flex items-center justify-between">
           <span className="text-xs font-medium text-zinc-300">Connect Repository</span>
-          <button
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setShowSetup(false)}
-            className="text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+            className="text-zinc-500 hover:text-zinc-300"
           >
             Cancel
-          </button>
+          </Button>
         </div>
         <p className="text-[10px] text-zinc-500">
           Paste a GitHub repo URL to sync your prompts across devices.
         </p>
-        <input
+        <Input
           type="text"
           value={urlInput}
           onChange={(e) => setUrlInput(e.target.value)}
@@ -54,15 +57,17 @@ export function SyncStatus() {
           }}
           placeholder="git@github.com:user/prompts.git"
           autoFocus
-          className="w-full bg-mentat-bg-raised border border-mentat-border rounded px-2 py-1 text-xs text-zinc-200 placeholder:text-zinc-600 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent"
+          className="text-xs px-2 py-1"
         />
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={handleConnect}
           disabled={!urlInput.trim() || isConnecting}
-          className="w-full text-xs px-2 py-1 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          className="w-full"
         >
           {isConnecting ? "Connecting..." : "Connect & Sync"}
-        </button>
+        </Button>
         {lastError && (
           <p className="text-[10px] text-red-400 break-words">{lastError}</p>
         )}
@@ -74,18 +79,20 @@ export function SyncStatus() {
   if (!status || (!status.has_remote && !remoteUrl)) {
     return (
       <div className="p-3 border-t border-mentat-border">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={async () => {
             if (status && !status.branch) {
               await initRepo();
             }
             setShowSetup(true);
           }}
-          className="flex items-center gap-2 text-xs text-zinc-400 hover:text-mentat-accent transition-colors"
+          className="flex items-center gap-2 text-zinc-400 hover:text-mentat-accent"
         >
           <span className="w-2 h-2 rounded-full bg-zinc-600 flex-shrink-0" />
           Set up Git sync
-        </button>
+        </Button>
       </div>
     );
   }
@@ -117,20 +124,23 @@ export function SyncStatus() {
           <span className="text-xs text-zinc-400 truncate">{statusText}</span>
         </div>
         <div className="flex items-center gap-1 flex-shrink-0">
-          <button
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={sync}
             disabled={isSyncing}
-            className="text-xs px-2 py-0.5 rounded bg-mentat-bg-raised text-zinc-300 hover:bg-mentat-bg-surface disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
           >
             {isSyncing ? "Syncing..." : "Sync"}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setShowSetup(true)}
-            className="text-xs px-1 py-0.5 rounded text-zinc-600 hover:text-zinc-400 transition-colors"
+            className="px-1 text-zinc-600 hover:text-zinc-400"
             title={remoteUrl || "Configure remote"}
           >
             ...
-          </button>
+          </Button>
         </div>
       </div>
       {lastError && (

@@ -1,6 +1,20 @@
 import { useState, useCallback, useRef, useEffect, type ChangeEvent } from "react";
 import type { Prompt, PromptType, VariableDefinition } from "../../types/prompt";
 import { usePromptStore } from "../../stores/usePromptStore";
+import {
+  Input,
+  Label,
+  Select,
+  SelectTrigger,
+  SelectContent,
+  SelectItem,
+  SelectValue,
+  Checkbox,
+  Button,
+  Collapsible,
+  CollapsibleTrigger,
+  CollapsibleContent,
+} from "../ui";
 
 interface Props {
   prompt: Prompt;
@@ -56,8 +70,8 @@ export function MetadataForm({ prompt }: Props) {
   );
 
   const handleTypeChange = useCallback(
-    (e: ChangeEvent<HTMLSelectElement>) => {
-      updateMeta({ type: e.target.value as PromptType });
+    (value: string) => {
+      updateMeta({ type: value as PromptType });
     },
     [updateMeta]
   );
@@ -109,165 +123,167 @@ export function MetadataForm({ prompt }: Props) {
     [prompt.meta.variables, updateMeta]
   );
 
-  const inputClass =
-    "w-full bg-mentat-bg-raised border border-mentat-border rounded px-2 py-1 text-sm text-zinc-200 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent transition-colors";
-
   return (
     <div className="border-b border-mentat-border">
-      <button
-        onClick={() => setCollapsed(!collapsed)}
-        className="w-full flex items-center justify-between px-4 py-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
-      >
-        <span>Metadata</span>
-        <span className="text-[10px]">{collapsed ? "+" : "-"}</span>
-      </button>
-      {!collapsed && (
-        <div className="px-4 pb-3 space-y-3 text-xs">
-          {/* Title */}
-          <div>
-            <label className="block text-zinc-500 mb-1">Title</label>
-            <input
-              type="text"
-              value={localTitle}
-              onChange={handleTitleChange}
-              className={inputClass}
-            />
-          </div>
-
-          {/* Type + Version row */}
-          <div className="grid grid-cols-2 gap-2">
+      <Collapsible open={!collapsed} onOpenChange={(open) => setCollapsed(!open)}>
+        <CollapsibleTrigger asChild>
+          <button
+            className="w-full flex items-center justify-between px-4 py-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
+          >
+            <span>Metadata</span>
+            <span className="text-[10px]">{collapsed ? "+" : "-"}</span>
+          </button>
+        </CollapsibleTrigger>
+        <CollapsibleContent>
+          <div className="px-4 pb-3 space-y-3 text-xs">
+            {/* Title */}
             <div>
-              <label className="block text-zinc-500 mb-1">Type</label>
-              <select
-                value={prompt.meta.type}
-                onChange={handleTypeChange}
-                className={inputClass}
-              >
-                {PROMPT_TYPES.map((pt) => (
-                  <option key={pt} value={pt}>
-                    {pt}
-                  </option>
-                ))}
-              </select>
+              <Label>Title</Label>
+              <Input
+                type="text"
+                value={localTitle}
+                onChange={handleTitleChange}
+              />
             </div>
+
+            {/* Type + Version row */}
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <Label>Type</Label>
+                <Select value={prompt.meta.type} onValueChange={handleTypeChange}>
+                  <SelectTrigger className="w-full">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {PROMPT_TYPES.map((pt) => (
+                      <SelectItem key={pt} value={pt}>
+                        {pt}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <Label>Version</Label>
+                <p className="text-zinc-300 py-1">{prompt.meta.version}</p>
+              </div>
+            </div>
+
+            {/* Target */}
             <div>
-              <label className="block text-zinc-500 mb-1">Version</label>
-              <p className="text-zinc-300 py-1">{prompt.meta.version}</p>
-            </div>
-          </div>
-
-          {/* Target */}
-          <div>
-            <label className="block text-zinc-500 mb-1">Target</label>
-            <div className="flex gap-3">
-              {TARGET_OPTIONS.map((t) => (
-                <label
-                  key={t}
-                  className="flex items-center gap-1.5 text-sm text-zinc-300 cursor-pointer"
-                >
-                  <input
-                    type="checkbox"
-                    checked={prompt.meta.target.includes(t)}
-                    onChange={() => handleTargetToggle(t)}
-                    className="rounded border-zinc-600 bg-mentat-bg-raised text-mentat-accent focus:ring-mentat-accent focus:ring-offset-0"
-                  />
-                  {t}
-                </label>
-              ))}
-            </div>
-          </div>
-
-          {/* Tags */}
-          <div>
-            <label className="block text-zinc-500 mb-1">Tags</label>
-            <div className="flex flex-wrap gap-1 mb-2">
-              {prompt.meta.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-mentat-bg-raised rounded-full text-zinc-400"
-                >
-                  {tag}
-                  <button
-                    onClick={() => handleRemoveTag(tag)}
-                    className="text-zinc-600 hover:text-zinc-300 transition-colors"
+              <Label>Target</Label>
+              <div className="flex gap-3">
+                {TARGET_OPTIONS.map((t) => (
+                  <Label
+                    key={t}
+                    className="flex items-center gap-1.5 text-sm text-zinc-300 cursor-pointer"
                   >
-                    x
-                  </button>
-                </span>
-              ))}
-            </div>
-            <input
-              type="text"
-              value={tagInput}
-              onChange={(e) => setTagInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  handleAddTag();
-                }
-              }}
-              placeholder="Add tag, press Enter"
-              className={inputClass}
-            />
-          </div>
-
-          {/* Variables */}
-          <div>
-            <label className="block text-zinc-500 mb-1">Variables</label>
-            {Object.keys(prompt.meta.variables).length > 0 && (
-              <div className="space-y-1 mb-2">
-                {Object.entries(prompt.meta.variables).map(([name, def]) => (
-                  <div key={name} className="flex items-center gap-2 group">
-                    <code className="text-mentat-accent">{`{{${name}}}`}</code>
-                    <span className="text-zinc-600">--</span>
-                    <span className="text-zinc-400 flex-1 truncate">
-                      {def.description || "no description"}
-                    </span>
-                    {def.default && (
-                      <span className="text-zinc-600">(default: {def.default})</span>
-                    )}
-                    <button
-                      onClick={() => handleRemoveVariable(name)}
-                      className="text-zinc-600 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100"
-                    >
-                      x
-                    </button>
-                  </div>
+                    <Checkbox
+                      checked={prompt.meta.target.includes(t)}
+                      onCheckedChange={() => handleTargetToggle(t)}
+                    />
+                    {t}
+                  </Label>
                 ))}
               </div>
-            )}
-            <div className="flex gap-2">
-              <input
+            </div>
+
+            {/* Tags */}
+            <div>
+              <Label>Tags</Label>
+              <div className="flex flex-wrap gap-1 mb-2">
+                {prompt.meta.tags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="inline-flex items-center gap-1 px-2 py-0.5 bg-mentat-bg-raised rounded-full text-zinc-400"
+                  >
+                    {tag}
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleRemoveTag(tag)}
+                      className="p-0 text-zinc-600 hover:text-zinc-300"
+                    >
+                      x
+                    </Button>
+                  </span>
+                ))}
+              </div>
+              <Input
                 type="text"
-                value={newVarName}
-                onChange={(e) => setNewVarName(e.target.value)}
-                placeholder="name"
-                className={`${inputClass} flex-1`}
-              />
-              <input
-                type="text"
-                value={newVarDesc}
-                onChange={(e) => setNewVarDesc(e.target.value)}
-                placeholder="description"
+                value={tagInput}
+                onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === "Enter") {
                     e.preventDefault();
-                    handleAddVariable();
+                    handleAddTag();
                   }
                 }}
-                className={`${inputClass} flex-1`}
+                placeholder="Add tag, press Enter"
               />
-              <button
-                onClick={handleAddVariable}
-                disabled={!newVarName.trim()}
-                className="px-2 py-1 rounded bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-              >
-                +
-              </button>
+            </div>
+
+            {/* Variables */}
+            <div>
+              <Label>Variables</Label>
+              {Object.keys(prompt.meta.variables).length > 0 && (
+                <div className="space-y-1 mb-2">
+                  {Object.entries(prompt.meta.variables).map(([name, def]) => (
+                    <div key={name} className="flex items-center gap-2 group">
+                      <code className="text-mentat-accent">{`{{${name}}}`}</code>
+                      <span className="text-zinc-600">--</span>
+                      <span className="text-zinc-400 flex-1 truncate">
+                        {def.description || "no description"}
+                      </span>
+                      {def.default && (
+                        <span className="text-zinc-600">(default: {def.default})</span>
+                      )}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveVariable(name)}
+                        className="p-0 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100"
+                      >
+                        x
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  value={newVarName}
+                  onChange={(e) => setNewVarName(e.target.value)}
+                  placeholder="name"
+                  className="flex-1"
+                />
+                <Input
+                  type="text"
+                  value={newVarDesc}
+                  onChange={(e) => setNewVarDesc(e.target.value)}
+                  placeholder="description"
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") {
+                      e.preventDefault();
+                      handleAddVariable();
+                    }
+                  }}
+                  className="flex-1"
+                />
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={handleAddVariable}
+                  disabled={!newVarName.trim()}
+                >
+                  +
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        </CollapsibleContent>
+      </Collapsible>
     </div>
   );
 }

@@ -3,6 +3,7 @@ import { useStagingStore } from "../../stores/useStagingStore";
 import { useToastStore } from "../../stores/useToastStore";
 import * as api from "../../lib/tauri";
 import type { TerminalSession } from "../../lib/tauri";
+import { Button, Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from "../ui";
 
 export function StagingToolbar() {
   const stagedPrompt = useStagingStore((s) => s.stagedPrompt);
@@ -69,42 +70,51 @@ export function StagingToolbar() {
         Staging: {stagedPrompt?.meta.title ?? ""}
       </h2>
       <div className="flex items-center gap-2 flex-shrink-0">
-        <select
-          value={selectedId}
-          onFocus={fetchSessions}
-          onChange={(e) => setSelectedId(e.target.value)}
-          className="text-xs bg-mentat-bg-raised border border-mentat-border rounded px-2 py-1 text-zinc-300 max-w-[200px] truncate"
+        <Select
+          value={selectedId || undefined}
+          onValueChange={setSelectedId}
+          onOpenChange={(open) => { if (open) fetchSessions(); }}
         >
-          {sessions.length === 0 && (
-            <option value="">No sessions</option>
-          )}
-          {sessions.map((s) => (
-            <option key={s.id} value={s.id}>
-              {s.label}
-            </option>
-          ))}
-        </select>
+          <SelectTrigger className="text-xs px-2 py-1 max-w-[200px]">
+            <SelectValue placeholder="No sessions" />
+          </SelectTrigger>
+          <SelectContent>
+            {sessions.length === 0 ? (
+              <SelectItem value="__empty__" disabled>No sessions</SelectItem>
+            ) : (
+              sessions.map((s) => (
+                <SelectItem key={s.id} value={s.id}>
+                  {s.label}
+                </SelectItem>
+              ))
+            )}
+          </SelectContent>
+        </Select>
 
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={handleSend}
           disabled={isSending || !selectedId}
-          className="text-xs px-2 py-1 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover disabled:opacity-50 transition-colors"
         >
           {isSending ? "Sending..." : "Send"}
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={handleCopyResolved}
-          className="text-xs px-2 py-1 rounded bg-mentat-bg-raised text-zinc-300 border border-mentat-border hover:bg-mentat-bg-surface transition-colors"
           title="Cmd+D"
         >
           Copy
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           onClick={clearStaging}
-          className="text-xs px-2 py-1 rounded bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-surface transition-colors"
+          className="text-zinc-400 hover:text-zinc-200"
         >
           Back
-        </button>
+        </Button>
       </div>
     </div>
   );

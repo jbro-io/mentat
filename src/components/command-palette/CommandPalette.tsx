@@ -25,6 +25,8 @@ export function CommandPalette() {
   const [results, setResults] = useState<SearchResult[]>([]);
   const [query, setQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [visible, setVisible] = useState(false);
+  const [exiting, setExiting] = useState(false);
 
   const actionCommands: ActionCommand[] = [
     {
@@ -93,6 +95,20 @@ export function CommandPalette() {
   );
 
   useEffect(() => {
+    if (open) {
+      setVisible(true);
+      setExiting(false);
+    } else if (visible) {
+      setExiting(true);
+      const timer = setTimeout(() => {
+        setVisible(false);
+        setExiting(false);
+      }, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [open]);
+
+  useEffect(() => {
     if (!open) {
       setResults([]);
       setQuery("");
@@ -112,7 +128,7 @@ export function CommandPalette() {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, [open, setOpen]);
 
-  if (!open) return null;
+  if (!visible) return null;
 
   // Filter action commands by query
   const filteredActions = query
@@ -125,10 +141,12 @@ export function CommandPalette() {
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]">
       <div
         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
+        style={{ animation: `${exiting ? 'fadeOut' : 'fadeIn'} 200ms cubic-bezier(0.16, 1, 0.3, 1) both` }}
         onClick={() => setOpen(false)}
       />
       <Command
         className="relative w-[560px] bg-mentat-bg border border-mentat-border rounded-xl shadow-2xl overflow-hidden"
+        style={{ animation: `${exiting ? 'scaleOut' : 'scaleIn'} 200ms cubic-bezier(0.16, 1, 0.3, 1) both`, transformOrigin: 'top center' }}
         shouldFilter={false}
       >
         <Command.Input

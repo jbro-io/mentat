@@ -90,7 +90,7 @@ export function StagingPanel() {
   const hasVariables = Object.keys(stagedPrompt.meta.variables).length > 0;
 
   return (
-    <div className="h-full flex flex-col bg-mentat-bg">
+    <div className="h-full flex flex-col bg-mentat-bg" style={{ animation: "fadeIn var(--motion-duration-normal) var(--motion-ease) both" }}>
       <StagingToolbar />
       {hasVariables && <VariableForm prompt={stagedPrompt} />}
       <div className="flex-1 overflow-hidden">
