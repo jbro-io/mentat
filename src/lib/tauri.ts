@@ -140,3 +140,17 @@ export async function ptyResize(
 export async function ptyClose(id: string): Promise<void> {
   return invoke("pty_close", { id });
 }
+
+// Terminal integration
+export interface TerminalSession {
+  label: string;
+  id: string;
+}
+
+export async function listTerminalSessions(): Promise<TerminalSession[]> {
+  return invoke("list_terminal_sessions");
+}
+
+export async function sendToTerminal(sessionId: string, text: string): Promise<void> {
+  return invoke("send_to_terminal", { sessionId, text });
+}

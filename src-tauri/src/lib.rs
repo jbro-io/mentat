@@ -7,6 +7,7 @@ mod pty;
 mod search;
 mod staging;
 mod store;
+mod terminal;
 
 use std::sync::{Arc, Mutex};
 
@@ -69,6 +70,8 @@ pub fn run() {
             commands::pty::pty_read_temp,
             commands::pty::pty_resize,
             commands::pty::pty_close,
+            commands::terminal::list_terminal_sessions,
+            commands::terminal::send_to_terminal,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

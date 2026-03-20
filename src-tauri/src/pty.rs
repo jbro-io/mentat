@@ -49,6 +49,14 @@ vim.keymap.set("n", "<leader>e", function()
   io.stdout:flush()
 end, { noremap = true, silent = true, desc = "Save and focus prompt list" })
 
+-- <leader>s — write to temp file and send to the selected terminal session
+-- No need to persist to the real prompt — just send what's in the editor right now
+vim.keymap.set("n", "<leader>s", function()
+  vim.cmd("silent! write")
+  io.stdout:write("\x1b]9999;send-to-terminal\x07")
+  io.stdout:flush()
+end, { noremap = true, silent = true, desc = "Send to terminal" })
+
 -- Hook into BufWritePost so :w also persists to the real prompt file
 vim.api.nvim_create_autocmd("BufWritePost", {
   callback = function()

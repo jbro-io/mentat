@@ -6,3 +6,4 @@ pub mod pty;
 pub mod search;
 pub mod settings;
 pub mod staging;
+pub mod terminal;

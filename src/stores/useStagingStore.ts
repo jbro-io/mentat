@@ -8,13 +8,15 @@ interface StagingStore {
   workingBody: string;
   variableValues: Record<string, string>;
   isStaging: boolean;
-  pendingInsert: string | null; // text waiting to be inserted into the editor
+  pendingInsert: string | null;
+  selectedTerminalSessionId: string | null;
 
   stagePrompt: (prompt: Prompt) => void;
   setVariableValue: (name: string, value: string) => void;
   setWorkingBody: (body: string) => void;
   insertPromptBody: (body: string) => void;
   clearPendingInsert: () => void;
+  setSelectedTerminalSessionId: (id: string | null) => void;
   dispatch: (mode: "clipboard") => Promise<void>;
   clearStaging: () => void;
 }
@@ -25,6 +27,7 @@ export const useStagingStore = create<StagingStore>((set, get) => ({
   variableValues: {},
   isStaging: false,
   pendingInsert: null,
+  selectedTerminalSessionId: null,
 
   stagePrompt: (prompt: Prompt) => {
     const defaults: Record<string, string> = {};
@@ -65,6 +68,10 @@ export const useStagingStore = create<StagingStore>((set, get) => ({
 
   clearPendingInsert: () => {
     set({ pendingInsert: null });
+  },
+
+  setSelectedTerminalSessionId: (id: string | null) => {
+    set({ selectedTerminalSessionId: id });
   },
 
   dispatch: async (mode: "clipboard") => {

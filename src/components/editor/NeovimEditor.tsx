@@ -152,6 +152,7 @@ export function NeovimEditor(props: Props) {
 
     const focusSignal = "\x1b]9999;focus-prompt-list\x07";
     const saveSignal = "\x1b]9999;save-prompt\x07";
+    const sendSignal = "\x1b]9999;send-to-terminal\x07";
 
     const unlistenOutput = listen<{ id: string; data: number[] }>(
       "pty-output",
@@ -166,6 +167,18 @@ export function NeovimEditor(props: Props) {
           if (text.includes(focusSignal)) {
             text = text.replace(focusSignal, "");
             requestPromptListFocus();
+          }
+          if (text.includes(sendSignal)) {
+            text = text.replace(sendSignal, "");
+            // Read the temp file directly (neovim just saved it) and send
+            const sessId = useStagingStore.getState().selectedTerminalSessionId;
+            if (sessId) {
+              api.ptyReadTemp(sid).then(async (body) => {
+                const vars = useStagingStore.getState().variableValues;
+                const resolved = await api.resolvePrompt(body, vars);
+                await api.sendToTerminal(sessId, resolved.trimEnd());
+              }).catch((err) => console.error("Failed to send:", err));
+            }
           }
 
           if (text.length > 0) {
