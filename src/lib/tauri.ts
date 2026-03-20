@@ -111,7 +111,19 @@ export async function saveSettings(settings: string): Promise<void> {
   return invoke("save_settings", { settings });
 }
 
-// PTY commands for embedded Neovim
+export async function getEnvVar(name: string): Promise<string> {
+  return invoke("get_env_var", { name });
+}
+
+export async function writeFile(path: string, contents: string): Promise<void> {
+  return invoke("write_file", { path, contents });
+}
+
+export async function readFile(path: string): Promise<string> {
+  return invoke("read_file", { path });
+}
+
+// PTY commands for embedded Neovim (kept for temp file cleanup)
 export async function ptySpawn(
   id: string,
   body: string,
@@ -121,7 +133,7 @@ export async function ptySpawn(
   return invoke("pty_spawn", { id, body, rows, cols });
 }
 
-export async function ptyWrite(id: string, data: number[]): Promise<void> {
+export async function ptyWrite(id: string, data: string): Promise<void> {
   return invoke("pty_write", { id, data });
 }
 

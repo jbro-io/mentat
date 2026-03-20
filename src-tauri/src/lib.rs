@@ -38,6 +38,7 @@ pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_clipboard_manager::init())
         .plugin(tauri_plugin_global_shortcut::Builder::new().build())
+        .plugin(tauri_plugin_pty::init())
         .manage(Arc::new(Mutex::new(file_store)))
         .manage(Arc::new(Mutex::new(search_engine)))
         .manage(Arc::new(Mutex::new(PtyManager::new())))
@@ -65,6 +66,10 @@ pub fn run() {
             commands::projects::get_project,
             commands::settings::load_settings,
             commands::settings::save_settings,
+            commands::settings::get_env_var,
+            commands::settings::file_exists,
+            commands::settings::write_file,
+            commands::settings::read_file,
             commands::pty::pty_spawn,
             commands::pty::pty_write,
             commands::pty::pty_read_temp,

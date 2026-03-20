@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useStagingStore } from "../../stores/useStagingStore";
 import { useToastStore } from "../../stores/useToastStore";
 import * as api from "../../lib/tauri";
@@ -15,25 +15,21 @@ export function StagingToolbar() {
   const [selectedId, setSelectedId] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
 
-  // Fetch sessions on mount and periodically refresh
-  useEffect(() => {
-    const refresh = async () => {
-      try {
-        const found = await api.listTerminalSessions();
-        setSessions(found);
-        setSelectedId((prev) => {
-          if (prev && found.some((s) => s.id === prev)) return prev;
-          const first = found.length > 0 ? found[0].id : "";
-          return first;
-        });
-      } catch {
-        // iTerm not running or no sessions
-      }
-    };
-    refresh();
-    const interval = setInterval(refresh, 5000);
-    return () => clearInterval(interval);
+  // Fetch sessions once on mount, and on-demand when dropdown is opened
+  const fetchSessions = useCallback(async () => {
+    try {
+      const found = await api.listTerminalSessions();
+      setSessions(found);
+      setSelectedId((prev) => {
+        if (prev && found.some((s) => s.id === prev)) return prev;
+        return found.length > 0 ? found[0].id : "";
+      });
+    } catch {
+      // iTerm not running or no sessions
+    }
   }, []);
+
+  useEffect(() => { fetchSessions(); }, [fetchSessions]);
 
   // Sync selected session to the store so neovim's <leader>s can access it
   useEffect(() => {
@@ -75,6 +71,7 @@ export function StagingToolbar() {
       <div className="flex items-center gap-2 flex-shrink-0">
         <select
           value={selectedId}
+          onFocus={fetchSessions}
           onChange={(e) => setSelectedId(e.target.value)}
           className="text-xs bg-mentat-bg-raised border border-mentat-border rounded px-2 py-1 text-zinc-300 max-w-[200px] truncate"
         >

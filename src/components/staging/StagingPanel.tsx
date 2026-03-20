@@ -1,4 +1,4 @@
-import { useEffect, useRef, useCallback } from "react";
+import { useEffect, useRef, useCallback, memo } from "react";
 import { EditorView, keymap } from "@codemirror/view";
 import { EditorState } from "@codemirror/state";
 import { markdown } from "@codemirror/lang-markdown";
@@ -12,15 +12,22 @@ import { NeovimEditor } from "../editor/NeovimEditor";
 import { StagingToolbar } from "./StagingToolbar";
 import { VariableForm } from "./VariableForm";
 
+// Memoize the neovim editor wrapper to prevent re-renders from parent
+const MemoizedNeovimEditor = memo(function StagingNeovimEditor({ initialBody }: { initialBody: string }) {
+  const setWorkingBody = useStagingStore((s) => s.setWorkingBody);
+  return <NeovimEditor initialBody={initialBody} onSave={setWorkingBody} />;
+});
+
 export function StagingPanel() {
   const stagedPrompt = useStagingStore((s) => s.stagedPrompt);
-  const workingBody = useStagingStore((s) => s.workingBody);
   const setWorkingBody = useStagingStore((s) => s.setWorkingBody);
   const pendingInsert = useStagingStore((s) => s.pendingInsert);
   const clearPendingInsert = useStagingStore((s) => s.clearPendingInsert);
   const editorPreference = useUIStore((s) => s.editorPreference);
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  // Grab initial body once without subscribing to changes
+  const initialBodyRef = useRef(useStagingStore.getState().workingBody);
 
   const handleUpdate = useCallback(
     (body: string) => {
@@ -39,7 +46,7 @@ export function StagingPanel() {
     });
 
     const state = EditorState.create({
-      doc: workingBody,
+      doc: initialBodyRef.current,
       extensions: [
         keymap.of([...defaultKeymap, ...historyKeymap, ...searchKeymap]),
         history(),
@@ -88,10 +95,7 @@ export function StagingPanel() {
       {hasVariables && <VariableForm prompt={stagedPrompt} />}
       <div className="flex-1 overflow-hidden">
         {editorPreference === "neovim" ? (
-          <NeovimEditor
-            initialBody={workingBody}
-            onSave={handleUpdate}
-          />
+          <MemoizedNeovimEditor initialBody={initialBodyRef.current} />
         ) : (
           <div ref={containerRef} className="h-full overflow-auto" />
         )}

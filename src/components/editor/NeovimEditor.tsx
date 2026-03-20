@@ -1,7 +1,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import { Terminal } from "@xterm/xterm";
 import { FitAddon } from "@xterm/addon-fit";
-import { listen } from "@tauri-apps/api/event";
+import { spawn } from "tauri-pty";
+import type { IPty } from "tauri-pty";
 import type { Prompt } from "../../types/prompt";
 import { usePromptStore } from "../../stores/usePromptStore";
 import { useUIStore } from "../../stores/useUIStore";
@@ -29,8 +30,10 @@ export function NeovimEditor(props: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
   const terminalRef = useRef<Terminal | null>(null);
   const fitAddonRef = useRef<FitAddon | null>(null);
+  const ptyRef = useRef<IPty | null>(null);
+  const cleanupRef = useRef<(() => void) | null>(null);
   const mountedRef = useRef(false);
-  const sidRef = useRef<string | null>(null);
+  const tempIdRef = useRef<string>("");
   const updatePrompt = usePromptStore((s) => s.updatePrompt);
   const setEditorPreference = useUIStore((s) => s.setEditorPreference);
   const requestPromptListFocus = useUIStore((s) => s.requestPromptListFocus);
@@ -41,83 +44,41 @@ export function NeovimEditor(props: Props) {
   const body = props.prompt ? props.prompt.body : props.initialBody;
   const promptRef = useRef(props.prompt);
 
-  useEffect(() => {
-    promptRef.current = props.prompt;
-  }, [props.prompt]);
+  useEffect(() => { promptRef.current = props.prompt; }, [props.prompt]);
 
-  // Focus the terminal when editor focus is requested (e.g. ArrowRight from prompt list)
   useEffect(() => {
-    if (editorFocusRequested > 0 && terminalRef.current) {
-      terminalRef.current.focus();
-    }
+    if (editorFocusRequested > 0 && terminalRef.current) terminalRef.current.focus();
   }, [editorFocusRequested]);
 
-  // When pendingInsert is set (user picked a prompt from the list while staging),
-  // send it to neovim via the PTY using bracketed paste
   useEffect(() => {
-    if (!pendingInsert || !sidRef.current) return;
-    const sid = sidRef.current;
-    const text = "\n\n---\n\n" + pendingInsert;
-    const encoder = new TextEncoder();
-
-    // ESC (ensure normal mode) → G (end of file) → o (open line below, insert mode)
-    const setup = encoder.encode("\x1bGo");
-    // Bracketed paste: tells neovim to treat this as pasted text (no key interpretation)
-    const pasteStart = encoder.encode("\x1b[200~");
-    const pasteBody = encoder.encode(text);
-    const pasteEnd = encoder.encode("\x1b[201~");
-    // ESC back to normal mode
-    const finish = encoder.encode("\x1b");
-
-    (async () => {
-      await api.ptyWrite(sid, Array.from(setup));
-      await api.ptyWrite(sid, Array.from(pasteStart));
-      await api.ptyWrite(sid, Array.from(pasteBody));
-      await api.ptyWrite(sid, Array.from(pasteEnd));
-      await api.ptyWrite(sid, Array.from(finish));
-    })();
-
+    if (!pendingInsert || !ptyRef.current) return;
+    ptyRef.current.write("\x1bGo\x1b[200~\n\n---\n\n" + pendingInsert + "\x1b[201~\x1b");
     clearPendingInsert();
   }, [pendingInsert, clearPendingInsert]);
 
-  // Read the temp file and persist the body back to the real prompt
-  const handleSaveSignal = useCallback(
-    async (sid: string) => {
-      try {
-        const editedBody = await api.ptyReadTemp(sid);
-        const current = promptRef.current;
-        if (current) {
-          await updatePrompt({ ...current, body: editedBody });
-        } else if (props.onSave) {
-          props.onSave(editedBody);
-        }
-      } catch (err) {
-        console.error("Failed to persist save:", err);
+  const handleSaveSignal = useCallback(async () => {
+    try {
+      const tid = tempIdRef.current;
+      const editedBody = await api.readFile(`/tmp/mentat-edit-${tid}.md`);
+      const current = promptRef.current;
+      if (current) {
+        await updatePrompt({ ...current, body: editedBody });
+      } else if (props.onSave) {
+        props.onSave(editedBody);
       }
-    },
+    } catch (err) {
+      console.error("Failed to persist save:", err);
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [props.onSave, updatePrompt],
-  );
-
-  const handleNeovimExit = useCallback(
-    async (sid: string) => {
-      try {
-        // Persist any final changes before closing
-        await handleSaveSignal(sid);
-        await api.ptyClose(sid);
-      } catch (err) {
-        console.error("Failed to close PTY session:", err);
-      }
-    },
-    [handleSaveSignal],
-  );
+  }, [props.onSave, updatePrompt]);
 
   useEffect(() => {
     if (!containerRef.current || mountedRef.current) return;
     mountedRef.current = true;
 
-    const sid = `nvim-${Date.now()}-${++sessionCounter}`;
-    sidRef.current = sid;
+    const tid = `${Date.now()}-${++sessionCounter}`;
+    tempIdRef.current = tid;
+    const tempPath = `/tmp/mentat-edit-${tid}.md`;
 
     const terminal = new Terminal({
       cursorBlink: true,
@@ -137,112 +98,116 @@ export function NeovimEditor(props: Props) {
     terminal.open(containerRef.current);
     fitAddon.fit();
     terminal.focus();
-
     terminalRef.current = terminal;
     fitAddonRef.current = fitAddon;
 
-    const rows = terminal.rows;
     const cols = terminal.cols;
+    const rows = terminal.rows;
 
-    // Fix neovim's colon-separated true-color SGR for xterm.js
-    const colonSgrRegex = /\x1b\[([34]8):2:(\d+):(\d+):(\d+)m/g;
-    function fixColorSequences(text: string): string {
-      return text.replace(colonSgrRegex, "\x1b[$1;2;$2;$3;$4m");
-    }
-
-    const focusSignal = "\x1b]9999;focus-prompt-list\x07";
+    // Color fix regex
+    const colorRegex = /\x1b\[([34]8):2:(\d+):(\d+):(\d+)m/g;
     const saveSignal = "\x1b]9999;save-prompt\x07";
+    const focusSignal = "\x1b]9999;focus-prompt-list\x07";
     const sendSignal = "\x1b]9999;send-to-terminal\x07";
 
-    const unlistenOutput = listen<{ id: string; data: number[] }>(
-      "pty-output",
-      (event) => {
-        if (event.payload.id === sid) {
-          let text = new TextDecoder().decode(new Uint8Array(event.payload.data));
+    (async () => {
+      // Double-mount guard (React strict mode calls effect twice)
+      if (!mountedRef.current) return;
 
-          if (text.includes(saveSignal)) {
-            text = text.replace(saveSignal, "");
-            handleSaveSignal(sid);
-          }
-          if (text.includes(focusSignal)) {
-            text = text.replace(focusSignal, "");
-            requestPromptListFocus();
-          }
-          if (text.includes(sendSignal)) {
-            text = text.replace(sendSignal, "");
-            // Read the temp file directly (neovim just saved it) and send
-            const sessId = useStagingStore.getState().selectedTerminalSessionId;
-            if (sessId) {
-              api.ptyReadTemp(sid).then(async (body) => {
-                const vars = useStagingStore.getState().variableValues;
-                const resolved = await api.resolvePrompt(body, vars);
-                await api.sendToTerminal(sessId, resolved.trimEnd());
-              }).catch((err) => console.error("Failed to send:", err));
-            }
-          }
+      // Write body to temp file
+      await api.writeFile(tempPath, body);
 
-          if (text.length > 0) {
-            terminal.write(fixColorSequences(text));
+      // Get HOME for nvim-init.lua path
+      const home = await api.getEnvVar("HOME");
+
+      // Spawn nvim directly (no shell wrapper)
+      const pty = spawn("/opt/homebrew/bin/nvim", [
+        "-u", `${home}/.mentat/nvim-init.lua`,
+        "--noplugin",
+        tempPath,
+      ], { cols, rows });
+
+      ptyRef.current = pty;
+
+      // Output — plugin sends Array<number>, convert to string
+      const decoder = new TextDecoder();
+      const dataDisp = pty.onData((data: unknown) => {
+        let processed = Array.isArray(data)
+          ? decoder.decode(new Uint8Array(data))
+          : typeof data === "string" ? data : decoder.decode(data as Uint8Array);
+        if (processed.includes(saveSignal)) {
+          processed = processed.replaceAll(saveSignal, "");
+          // Only persist saves in prompt mode, not staging (avoids re-render per keystroke)
+          if (props.prompt) {
+            handleSaveSignal();
           }
         }
-      },
-    );
+        if (processed.includes(focusSignal)) {
+          processed = processed.replaceAll(focusSignal, "");
+          requestPromptListFocus();
+        }
+        if (processed.includes(sendSignal)) {
+          processed = processed.replaceAll(sendSignal, "");
+          const sessId = useStagingStore.getState().selectedTerminalSessionId;
+          if (sessId) {
+            api.readFile(tempPath).then(async (b) => {
+              const vars = useStagingStore.getState().variableValues;
+              const resolved = await api.resolvePrompt(b, vars);
+              await api.sendToTerminal(sessId, resolved.trimEnd());
+            }).catch(console.error);
+          }
+        }
 
-    const unlistenExited = listen<{ id: string }>("pty-exited", (event) => {
-      if (event.payload.id === sid) {
-        handleNeovimExit(sid);
-      }
-    });
-
-    const onDataDisposable = terminal.onData((data) => {
-      const bytes = Array.from(new TextEncoder().encode(data));
-      api.ptyWrite(sid, bytes).catch((err) => {
-        console.error("Failed to write to PTY:", err);
+        if (processed.length > 0) {
+          terminal.write(processed.replace(colorRegex, "\x1b[$1;2;$2;$3;$4m"));
+        }
       });
-    });
 
-    const resizeObserver = new ResizeObserver(() => {
-      if (fitAddonRef.current && terminalRef.current) {
-        fitAddonRef.current.fit();
-        const newRows = terminalRef.current.rows;
-        const newCols = terminalRef.current.cols;
-        api.ptyResize(sid, newRows, newCols).catch((err) => {
-          console.error("Failed to resize PTY:", err);
-        });
-      }
-    });
-    resizeObserver.observe(containerRef.current);
+      const exitDisp = pty.onExit(() => { handleSaveSignal(); });
 
-    // Spawn neovim with just the body (no frontmatter)
-    api
-      .ptySpawn(sid, body, rows, cols)
-      .catch((err) => {
-        console.error("Failed to spawn neovim:", err);
-        terminal.write(
-          `\r\n\x1b[31mFailed to start neovim: ${String(err)}\x1b[0m\r\n` +
-          "\x1b[33mFalling back to CodeMirror...\x1b[0m\r\n"
-        );
-        setTimeout(() => setEditorPreference("codemirror"), 2000);
+      // Input — direct string write
+      const inputDisp = terminal.onData((data) => { pty.write(data); });
+
+      // Resize
+      const resizeObs = new ResizeObserver(() => {
+        if (fitAddonRef.current && terminalRef.current && ptyRef.current) {
+          fitAddonRef.current.fit();
+          ptyRef.current.resize(terminalRef.current.cols, terminalRef.current.rows);
+        }
       });
+      resizeObs.observe(containerRef.current!);
+
+      cleanupRef.current = () => {
+        inputDisp.dispose();
+        dataDisp.dispose();
+        exitDisp.dispose();
+        resizeObs.disconnect();
+        pty.kill();
+        terminal.dispose();
+        mountedRef.current = false;
+        ptyRef.current = null;
+      };
+    })().catch((err) => {
+      console.error("Failed to spawn neovim:", err);
+      terminal.write(
+        `\r\n\x1b[31mFailed to start neovim: ${String(err)}\x1b[0m\r\n` +
+        "\x1b[33mFalling back to CodeMirror...\x1b[0m\r\n"
+      );
+      setTimeout(() => setEditorPreference("codemirror"), 2000);
+    });
 
     return () => {
-      onDataDisposable.dispose();
-      resizeObserver.disconnect();
-      unlistenOutput.then((fn) => fn());
-      unlistenExited.then((fn) => fn());
-      terminal.dispose();
-      mountedRef.current = false;
-
-      api.ptyClose(sid).catch(() => {});
+      if (cleanupRef.current) {
+        cleanupRef.current();
+      } else {
+        terminal.dispose();
+        mountedRef.current = false;
+      }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.prompt?.meta.id]);
 
   return (
-    <div
-      ref={containerRef}
-      className="h-full w-full"
-      style={{ backgroundColor: "#09131B" }}
-    />
+    <div ref={containerRef} className="h-full w-full" style={{ backgroundColor: "#09131B" }} />
   );
 }
