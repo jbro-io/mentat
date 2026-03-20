@@ -1,0 +1,31 @@
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+src-tauri/target/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Tauri generated
+src-tauri/gen/
+
+# Mentat local data (managed by the app)
+# These are in ~/.mentat/.gitignore, but also here for dev safety
+*.sqlite
+dispatch-log.jsonl
+
+# Environment
+.env
+.env.local
+
+.claude/
