@@ -85,8 +85,8 @@ export function NewPromptDialog({ open, onClose }: Props) {
         className="fixed inset-0 bg-black/60 backdrop-blur-sm"
         onClick={onClose}
       />
-      <div className="relative w-[480px] bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden">
-        <div className="px-4 py-3 border-b border-zinc-800">
+      <div className="relative w-[480px] bg-mentat-bg border border-mentat-border rounded-xl shadow-2xl overflow-hidden">
+        <div className="px-4 py-3 border-b border-mentat-border">
           <h2 className="text-sm font-medium text-zinc-200">New Prompt</h2>
         </div>
 
@@ -104,7 +104,7 @@ export function NewPromptDialog({ open, onClose }: Props) {
                 if (e.key === "Escape") onClose();
               }}
               placeholder="My Prompt"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-mentat-bg-raised border border-mentat-border rounded-md px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent"
             />
           </div>
 
@@ -114,7 +114,7 @@ export function NewPromptDialog({ open, onClose }: Props) {
             <select
               value={type}
               onChange={(e) => setType(e.target.value as PromptType)}
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-mentat-bg-raised border border-mentat-border rounded-md px-3 py-1.5 text-sm text-zinc-200 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent"
             >
               {PROMPT_TYPES.map((pt) => (
                 <option key={pt} value={pt}>
@@ -137,7 +137,7 @@ export function NewPromptDialog({ open, onClose }: Props) {
                     type="checkbox"
                     checked={targets.includes(t)}
                     onChange={() => toggleTarget(t)}
-                    className="rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                    className="rounded border-zinc-600 bg-mentat-bg-raised text-mentat-accent focus:ring-mentat-accent focus:ring-offset-0"
                   />
                   {t}
                 </label>
@@ -152,7 +152,7 @@ export function NewPromptDialog({ open, onClose }: Props) {
               {tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-zinc-800 text-zinc-400 rounded-full"
+                  className="inline-flex items-center gap-1 text-xs px-2 py-0.5 bg-mentat-bg-raised text-zinc-400 rounded-full"
                 >
                   {tag}
                   <button
@@ -176,22 +176,22 @@ export function NewPromptDialog({ open, onClose }: Props) {
                 if (e.key === "Escape") onClose();
               }}
               placeholder="Add tag and press Enter"
-              className="w-full bg-zinc-800 border border-zinc-700 rounded-md px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500"
+              className="w-full bg-mentat-bg-raised border border-mentat-border rounded-md px-3 py-1.5 text-sm text-zinc-200 placeholder:text-zinc-500 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent"
             />
           </div>
         </div>
 
-        <div className="flex justify-end gap-2 px-4 py-3 border-t border-zinc-800 bg-zinc-900/50">
+        <div className="flex justify-end gap-2 px-4 py-3 border-t border-mentat-border bg-mentat-bg">
           <button
             onClick={onClose}
-            className="text-xs px-3 py-1.5 rounded bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors"
+            className="text-xs px-3 py-1.5 rounded bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 transition-colors"
           >
             Cancel
           </button>
           <button
             onClick={handleSubmit}
             disabled={!title.trim() || isSubmitting}
-            className="text-xs px-3 py-1.5 rounded bg-indigo-600 text-white hover:bg-indigo-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            className="text-xs px-3 py-1.5 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
           >
             {isSubmitting ? "Creating..." : "Create"}
           </button>

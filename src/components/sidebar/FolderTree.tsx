@@ -26,8 +26,8 @@ export function FolderTree() {
         onClick={() => setFolderFilter(undefined)}
         className={`w-full text-left text-sm px-2 py-1 rounded flex items-center justify-between transition-colors ${
           !activeFolder
-            ? "bg-zinc-800 text-zinc-100"
-            : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+            ? "bg-mentat-bg-raised text-zinc-100"
+            : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
         }`}
       >
         <span>All Prompts</span>
@@ -39,8 +39,8 @@ export function FolderTree() {
           onClick={() => setFolderFilter(folder)}
           className={`w-full text-left text-sm px-2 py-1 rounded flex items-center justify-between transition-colors ${
             activeFolder === folder
-              ? "bg-zinc-800 text-zinc-100"
-              : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+              ? "bg-mentat-bg-raised text-zinc-100"
+              : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
           }`}
         >
           <span>{folder}</span>

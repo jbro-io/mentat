@@ -16,7 +16,7 @@ export function TagList() {
   };
 
   return (
-    <div className="p-3 border-t border-zinc-800">
+    <div className="p-3 border-t border-mentat-border">
       <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">Tags</h2>
       <div className="flex flex-wrap gap-1">
         {tags.map((tag) => (
@@ -25,8 +25,8 @@ export function TagList() {
             onClick={() => toggleTag(tag)}
             className={`text-xs px-2 py-0.5 rounded-full transition-colors ${
               activeTags?.includes(tag)
-                ? "bg-indigo-600 text-white"
-                : "bg-zinc-800 text-zinc-400 hover:bg-zinc-700"
+                ? "bg-mentat-accent text-black font-medium"
+                : "bg-mentat-bg-raised text-zinc-400 hover:bg-mentat-bg-surface"
             }`}
           >
             {tag}

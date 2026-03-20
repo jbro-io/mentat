@@ -10,8 +10,8 @@ const variableMatcher = new MatchDecorator({
 
 const variableTheme = EditorView.baseTheme({
   ".cm-variable-placeholder": {
-    backgroundColor: "rgba(99, 102, 241, 0.15)",
-    color: "#818cf8",
+    backgroundColor: "rgba(4, 255, 164, 0.12)",
+    color: "#04FFA4",
     borderRadius: "3px",
     padding: "0 2px",
   },

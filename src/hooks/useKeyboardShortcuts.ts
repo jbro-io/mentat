@@ -1,5 +1,8 @@
 import { useEffect } from "react";
 import { useUIStore } from "../stores/useUIStore";
+import { usePromptStore } from "../stores/usePromptStore";
+import { useStagingStore } from "../stores/useStagingStore";
+import { useToastStore } from "../stores/useToastStore";
 
 export function useKeyboardShortcuts() {
   const toggleCommandPalette = useUIStore((s) => s.toggleCommandPalette);
@@ -7,6 +10,11 @@ export function useKeyboardShortcuts() {
   const setEditorMode = useUIStore((s) => s.setEditorMode);
   const editorMode = useUIStore((s) => s.editorMode);
   const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
+  const selectedPrompt = usePromptStore((s) => s.selectedPrompt);
+  const isStaging = useStagingStore((s) => s.isStaging);
+  const stagePrompt = useStagingStore((s) => s.stagePrompt);
+  const dispatch = useStagingStore((s) => s.dispatch);
+  const showToast = useToastStore((s) => s.showToast);
 
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
@@ -18,8 +26,8 @@ export function useKeyboardShortcuts() {
         toggleCommandPalette();
       }
 
-      // Cmd+/ -- toggle sidebar
-      if (meta && e.key === "/") {
+      // Cmd+B or Cmd+/ -- toggle sidebar
+      if (meta && (e.key === "b" || e.key === "/")) {
         e.preventDefault();
         toggleSidebar();
       }
@@ -35,9 +43,22 @@ export function useKeyboardShortcuts() {
         e.preventDefault();
         setNewPromptDialogOpen(true);
       }
+
+      // Cmd+D -- stage prompt or dispatch if already staging
+      if (meta && e.key === "d") {
+        e.preventDefault();
+        if (isStaging) {
+          dispatch("clipboard").then(
+            () => showToast("Resolved prompt copied to clipboard!"),
+            () => showToast("Failed to copy resolved prompt"),
+          );
+        } else if (selectedPrompt) {
+          stagePrompt(selectedPrompt);
+        }
+      }
     }
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [toggleCommandPalette, toggleSidebar, setEditorMode, editorMode, setNewPromptDialogOpen]);
+  }, [toggleCommandPalette, toggleSidebar, setEditorMode, editorMode, setNewPromptDialogOpen, selectedPrompt, isStaging, stagePrompt, dispatch, showToast]);
 }

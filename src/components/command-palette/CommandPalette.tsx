@@ -1,6 +1,7 @@
 import { Command } from "cmdk";
 import { useUIStore } from "../../stores/useUIStore";
 import { usePromptStore } from "../../stores/usePromptStore";
+import { useComposeStore } from "../../stores/useComposeStore";
 import { useEffect, useState, useCallback, useRef } from "react";
 import type { SearchResult } from "../../types/prompt";
 import * as api from "../../lib/tauri";
@@ -20,6 +21,7 @@ export function CommandPalette() {
   const editorMode = useUIStore((s) => s.editorMode);
   const setEditorMode = useUIStore((s) => s.setEditorMode);
   const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
+  const toggleComposing = useComposeStore((s) => s.toggleComposing);
   const [results, setResults] = useState<SearchResult[]>([]);
   const [query, setQuery] = useState("");
   const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -49,6 +51,14 @@ export function CommandPalette() {
       shortcut: "Cmd+E",
       action: () => {
         setEditorMode(editorMode === "edit" ? "preview" : "edit");
+        setOpen(false);
+      },
+    },
+    {
+      id: "toggle-compose",
+      label: "Toggle Compose Mode",
+      action: () => {
+        toggleComposing();
         setOpen(false);
       },
     },
@@ -118,13 +128,13 @@ export function CommandPalette() {
         onClick={() => setOpen(false)}
       />
       <Command
-        className="relative w-[560px] bg-zinc-900 border border-zinc-700 rounded-xl shadow-2xl overflow-hidden"
+        className="relative w-[560px] bg-mentat-bg border border-mentat-border rounded-xl shadow-2xl overflow-hidden"
         shouldFilter={false}
       >
         <Command.Input
           placeholder="Search prompts or type a command..."
           onValueChange={handleSearch}
-          className="w-full bg-transparent px-4 py-3 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none border-b border-zinc-800"
+          className="w-full bg-transparent px-4 py-3 text-sm text-zinc-200 placeholder:text-zinc-500 outline-none border-b border-mentat-border"
         />
         <Command.List className="max-h-[300px] overflow-y-auto p-2">
           <Command.Empty className="py-6 text-center text-sm text-zinc-500">
@@ -142,11 +152,11 @@ export function CommandPalette() {
                   key={cmd.id}
                   value={cmd.id}
                   onSelect={cmd.action}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-zinc-800 data-[selected=true]:text-zinc-100"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-mentat-bg-raised data-[selected=true]:text-zinc-100"
                 >
                   <span>{cmd.label}</span>
                   {cmd.shortcut && (
-                    <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-zinc-800 border border-zinc-700 text-zinc-500 font-mono">
+                    <kbd className="text-[10px] px-1.5 py-0.5 rounded bg-mentat-bg-raised border border-mentat-border text-zinc-500 font-mono">
                       {cmd.shortcut}
                     </kbd>
                   )}
@@ -166,7 +176,7 @@ export function CommandPalette() {
                   key={result.id}
                   value={result.file_path}
                   onSelect={() => handleSelect(result.file_path)}
-                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-zinc-800 data-[selected=true]:text-zinc-100"
+                  className="flex items-center justify-between px-3 py-2 rounded-lg text-sm text-zinc-300 cursor-pointer data-[selected=true]:bg-mentat-bg-raised data-[selected=true]:text-zinc-100"
                 >
                   <span>{result.title}</span>
                   <span className="text-xs text-zinc-600">
@@ -178,15 +188,15 @@ export function CommandPalette() {
           )}
         </Command.List>
 
-        <div className="border-t border-zinc-800 px-4 py-2 flex items-center gap-4 text-[10px] text-zinc-600">
+        <div className="border-t border-mentat-border px-4 py-2 flex items-center gap-4 text-[10px] text-zinc-600">
           <span>
-            <kbd className="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 font-mono mr-1">
+            <kbd className="px-1 py-0.5 rounded bg-mentat-bg-raised border border-mentat-border font-mono mr-1">
               esc
             </kbd>
             close
           </span>
           <span>
-            <kbd className="px-1 py-0.5 rounded bg-zinc-800 border border-zinc-700 font-mono mr-1">
+            <kbd className="px-1 py-0.5 rounded bg-mentat-bg-raised border border-mentat-border font-mono mr-1">
               enter
             </kbd>
             select

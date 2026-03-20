@@ -4,28 +4,28 @@ export const mentatTheme = EditorView.theme({
   "&": {
     height: "100%",
     fontSize: "13px",
-    backgroundColor: "#09090b",
+    backgroundColor: "#09131B",
   },
   ".cm-content": {
     fontFamily: "'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace",
     padding: "16px",
-    caretColor: "#818cf8",
+    caretColor: "#04FFA4",
   },
   ".cm-cursor": {
-    borderLeftColor: "#818cf8",
+    borderLeftColor: "#04FFA4",
   },
   "&.cm-focused .cm-selectionBackground, .cm-selectionBackground": {
-    backgroundColor: "rgba(99, 102, 241, 0.2) !important",
+    backgroundColor: "rgba(4, 255, 164, 0.15) !important",
   },
   ".cm-gutters": {
-    backgroundColor: "#09090b",
-    color: "#3f3f46",
+    backgroundColor: "#09131B",
+    color: "#3B4F56",
     border: "none",
   },
   ".cm-activeLine": {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    backgroundColor: "rgba(4, 255, 164, 0.04)",
   },
   ".cm-activeLineGutter": {
-    backgroundColor: "rgba(255, 255, 255, 0.03)",
+    backgroundColor: "rgba(4, 255, 164, 0.04)",
   },
 });

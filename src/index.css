@@ -1,14 +1,24 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@theme {
+  --color-mentat-bg: #09131B;
+  --color-mentat-bg-raised: #0D1B24;
+  --color-mentat-bg-surface: #112230;
+  --color-mentat-border: #1A3040;
+  --color-mentat-accent: #04FFA4;
+  --color-mentat-accent-hover: #33FFB8;
+  --color-mentat-accent-muted: rgba(4, 255, 164, 0.15);
+}
+
 :root {
-  --color-surface: #18181b;
-  --color-surface-raised: #27272a;
-  --color-border: #3f3f46;
-  --color-text-primary: #fafafa;
-  --color-text-secondary: #a1a1aa;
-  --color-accent: #6366f1;
-  --color-accent-hover: #818cf8;
+  --color-surface: #09131B;
+  --color-surface-raised: #0D1B24;
+  --color-border: #1A3040;
+  --color-text-primary: #d4d4d8;
+  --color-text-secondary: #6B8A95;
+  --color-accent: #04FFA4;
+  --color-accent-hover: #33FFB8;
 }
 
 body {
@@ -34,7 +44,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #52525b;
+  background: #2A4050;
 }
 
 /* Toast slide-up animation */
@@ -58,12 +68,12 @@ body {
 /* Select styling for dark mode */
 select {
   appearance: auto;
-  background-color: #27272a;
+  background-color: #0D1B24;
 }
 
 select option {
-  background-color: #27272a;
-  color: #e4e4e7;
+  background-color: #0D1B24;
+  color: #d4d4d8;
 }
 
 /* Checkbox styling */

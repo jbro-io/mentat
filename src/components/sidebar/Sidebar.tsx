@@ -1,5 +1,8 @@
 import { FolderTree } from "./FolderTree";
+import { ProjectSelector } from "./ProjectSelector";
+import { SyncStatus } from "./SyncStatus";
 import { TagList } from "./TagList";
+import { useComposeStore } from "../../stores/useComposeStore";
 import { useFilterStore } from "../../stores/useFilterStore";
 import { useUIStore } from "../../stores/useUIStore";
 import type { PromptType } from "../../types/prompt";
@@ -19,25 +22,42 @@ export function Sidebar() {
   const setTypeFilter = useFilterStore((s) => s.setTypeFilter);
   const setTargetFilter = useFilterStore((s) => s.setTargetFilter);
   const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
+  const isComposing = useComposeStore((s) => s.isComposing);
+  const toggleComposing = useComposeStore((s) => s.toggleComposing);
 
   return (
-    <div className="h-full flex flex-col bg-zinc-900 border-r border-zinc-800 overflow-y-auto">
-      <div className="p-3 border-b border-zinc-800 flex items-center justify-between">
+    <div className="h-full flex flex-col bg-mentat-bg border-r border-mentat-border overflow-y-auto">
+      <div className="p-3 border-b border-mentat-border flex items-center justify-between">
         <h1 className="text-sm font-semibold text-zinc-300 tracking-wide uppercase">
           Mentat
         </h1>
-        <button
-          onClick={() => setNewPromptDialogOpen(true)}
-          className="text-xs px-2 py-0.5 rounded bg-indigo-600 text-white hover:bg-indigo-500 transition-colors"
-          title="New Prompt (Cmd+N)"
-        >
-          + New
-        </button>
+        <div className="flex items-center gap-1.5">
+          <button
+            onClick={toggleComposing}
+            className={`text-xs px-2 py-0.5 rounded transition-colors ${
+              isComposing
+                ? "bg-mentat-accent text-black font-medium"
+                : "bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-surface"
+            }`}
+            title="Toggle Compose Mode"
+          >
+            Compose
+          </button>
+          <button
+            onClick={() => setNewPromptDialogOpen(true)}
+            className="text-xs px-2 py-0.5 rounded bg-mentat-accent text-black font-medium hover:bg-mentat-accent-hover transition-colors"
+            title="New Prompt (Cmd+N)"
+          >
+            + New
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 overflow-y-auto">
+        <ProjectSelector />
+
         {/* Type Filter */}
-        <div className="p-3 border-b border-zinc-800">
+        <div className="p-3 border-b border-mentat-border">
           <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
             Type
           </h2>
@@ -45,8 +65,8 @@ export function Sidebar() {
             onClick={() => setTypeFilter(undefined)}
             className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
               !activeType
-                ? "bg-zinc-800 text-zinc-100"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                ? "bg-mentat-bg-raised text-zinc-100"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
             }`}
           >
             All Types
@@ -59,8 +79,8 @@ export function Sidebar() {
               }
               className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
                 activeType === pt.value
-                  ? "bg-zinc-800 text-zinc-100"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                  ? "bg-mentat-bg-raised text-zinc-100"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
               }`}
             >
               {pt.label}
@@ -69,7 +89,7 @@ export function Sidebar() {
         </div>
 
         {/* Target Filter */}
-        <div className="p-3 border-b border-zinc-800">
+        <div className="p-3 border-b border-mentat-border">
           <h2 className="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-2">
             Target
           </h2>
@@ -77,8 +97,8 @@ export function Sidebar() {
             onClick={() => setTargetFilter(undefined)}
             className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
               !activeTarget
-                ? "bg-zinc-800 text-zinc-100"
-                : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                ? "bg-mentat-bg-raised text-zinc-100"
+                : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
             }`}
           >
             All Targets
@@ -91,8 +111,8 @@ export function Sidebar() {
               }
               className={`w-full text-left text-sm px-2 py-1 rounded transition-colors ${
                 activeTarget === t
-                  ? "bg-zinc-800 text-zinc-100"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-800/50"
+                  ? "bg-mentat-bg-raised text-zinc-100"
+                  : "text-zinc-400 hover:text-zinc-200 hover:bg-mentat-bg-raised/50"
               }`}
             >
               {t}
@@ -103,6 +123,8 @@ export function Sidebar() {
         <FolderTree />
         <TagList />
       </div>
+
+      <SyncStatus />
     </div>
   );
 }

@@ -77,6 +77,7 @@ export function PromptEditor({ prompt }: Props) {
     viewRef.current = view;
     savedBodyRef.current = prompt.body;
     setIsDirty(false);
+    view.focus();
 
     return () => view.destroy();
     // eslint-disable-next-line react-hooks/exhaustive-deps

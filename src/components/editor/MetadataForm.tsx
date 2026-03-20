@@ -110,10 +110,10 @@ export function MetadataForm({ prompt }: Props) {
   );
 
   const inputClass =
-    "w-full bg-zinc-800 border border-zinc-700 rounded px-2 py-1 text-sm text-zinc-200 focus:outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 transition-colors";
+    "w-full bg-mentat-bg-raised border border-mentat-border rounded px-2 py-1 text-sm text-zinc-200 focus:outline-none focus:border-mentat-accent focus:ring-1 focus:ring-mentat-accent transition-colors";
 
   return (
-    <div className="border-b border-zinc-800">
+    <div className="border-b border-mentat-border">
       <button
         onClick={() => setCollapsed(!collapsed)}
         className="w-full flex items-center justify-between px-4 py-2 text-xs text-zinc-500 hover:text-zinc-300 transition-colors"
@@ -169,7 +169,7 @@ export function MetadataForm({ prompt }: Props) {
                     type="checkbox"
                     checked={prompt.meta.target.includes(t)}
                     onChange={() => handleTargetToggle(t)}
-                    className="rounded border-zinc-600 bg-zinc-800 text-indigo-500 focus:ring-indigo-500 focus:ring-offset-0"
+                    className="rounded border-zinc-600 bg-mentat-bg-raised text-mentat-accent focus:ring-mentat-accent focus:ring-offset-0"
                   />
                   {t}
                 </label>
@@ -184,7 +184,7 @@ export function MetadataForm({ prompt }: Props) {
               {prompt.meta.tags.map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-zinc-800 rounded-full text-zinc-400"
+                  className="inline-flex items-center gap-1 px-2 py-0.5 bg-mentat-bg-raised rounded-full text-zinc-400"
                 >
                   {tag}
                   <button
@@ -218,7 +218,7 @@ export function MetadataForm({ prompt }: Props) {
               <div className="space-y-1 mb-2">
                 {Object.entries(prompt.meta.variables).map(([name, def]) => (
                   <div key={name} className="flex items-center gap-2 group">
-                    <code className="text-indigo-400">{`{{${name}}}`}</code>
+                    <code className="text-mentat-accent">{`{{${name}}}`}</code>
                     <span className="text-zinc-600">--</span>
                     <span className="text-zinc-400 flex-1 truncate">
                       {def.description || "no description"}
@@ -260,7 +260,7 @@ export function MetadataForm({ prompt }: Props) {
               <button
                 onClick={handleAddVariable}
                 disabled={!newVarName.trim()}
-                className="px-2 py-1 rounded bg-zinc-800 text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="px-2 py-1 rounded bg-mentat-bg-raised text-zinc-400 hover:text-zinc-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 +
               </button>

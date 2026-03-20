@@ -14,6 +14,12 @@ pub enum AppError {
 
     #[error("Invalid path: {0}")]
     InvalidPath(String),
+
+    #[error("Git error: {0}")]
+    GitError(String),
+
+    #[error("PTY error: {0}")]
+    PtyError(String),
 }
 
 impl From<AppError> for tauri::ipc::InvokeError {
