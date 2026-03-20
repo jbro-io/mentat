@@ -13,6 +13,7 @@ interface UIStore {
   sidebarCollapsed: boolean;
   newPromptDialogOpen: boolean;
   promptListFocusRequested: number; // incremented to trigger focus
+  editorFocusRequested: number;
 
   loadSettings: () => Promise<void>;
   toggleCommandPalette: () => void;
@@ -22,6 +23,7 @@ interface UIStore {
   toggleSidebar: () => void;
   setNewPromptDialogOpen: (open: boolean) => void;
   requestPromptListFocus: () => void;
+  requestEditorFocus: () => void;
 }
 
 function persistSettings(state: UIStore) {
@@ -41,6 +43,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   sidebarCollapsed: false,
   newPromptDialogOpen: false,
   promptListFocusRequested: 0,
+  editorFocusRequested: 0,
 
   loadSettings: async () => {
     try {
@@ -72,4 +75,5 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
   setNewPromptDialogOpen: (open: boolean) => set({ newPromptDialogOpen: open }),
   requestPromptListFocus: () => set((s) => ({ promptListFocusRequested: s.promptListFocusRequested + 1 })),
+  requestEditorFocus: () => set((s) => ({ editorFocusRequested: s.editorFocusRequested + 1 })),
 }));

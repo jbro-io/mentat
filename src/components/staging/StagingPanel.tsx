@@ -16,8 +16,11 @@ export function StagingPanel() {
   const stagedPrompt = useStagingStore((s) => s.stagedPrompt);
   const workingBody = useStagingStore((s) => s.workingBody);
   const setWorkingBody = useStagingStore((s) => s.setWorkingBody);
+  const pendingInsert = useStagingStore((s) => s.pendingInsert);
+  const clearPendingInsert = useStagingStore((s) => s.clearPendingInsert);
   const editorPreference = useUIStore((s) => s.editorPreference);
   const containerRef = useRef<HTMLDivElement>(null);
+  const viewRef = useRef<EditorView | null>(null);
 
   const handleUpdate = useCallback(
     (body: string) => {
@@ -52,10 +55,28 @@ export function StagingPanel() {
       state,
       parent: containerRef.current,
     });
+    viewRef.current = view;
 
-    return () => view.destroy();
+    return () => {
+      view.destroy();
+      viewRef.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [stagedPrompt?.meta.id, handleUpdate, editorPreference]);
+
+  // Handle pendingInsert for CodeMirror mode
+  useEffect(() => {
+    if (!pendingInsert || editorPreference === "neovim" || !viewRef.current) return;
+    const view = viewRef.current;
+    const insert = "\n\n---\n\n" + pendingInsert;
+    const end = view.state.doc.length;
+    view.dispatch({
+      changes: { from: end, insert },
+      selection: { anchor: end + insert.length },
+    });
+    handleUpdate(view.state.doc.toString());
+    clearPendingInsert();
+  }, [pendingInsert, editorPreference, handleUpdate, clearPendingInsert]);
 
   if (!stagedPrompt) return null;
 

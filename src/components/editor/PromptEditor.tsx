@@ -8,6 +8,7 @@ import type { Prompt } from "../../types/prompt";
 import { variableHighlight } from "../../lib/codemirror/variableHighlight";
 import { mentatTheme } from "../../lib/codemirror/theme";
 import { usePromptStore } from "../../stores/usePromptStore";
+import { useUIStore } from "../../stores/useUIStore";
 
 interface Props {
   prompt: Prompt;
@@ -18,6 +19,7 @@ export function PromptEditor({ prompt }: Props) {
   const viewRef = useRef<EditorView | null>(null);
   const promptRef = useRef<Prompt>(prompt);
   const updatePrompt = usePromptStore((s) => s.updatePrompt);
+  const editorFocusRequested = useUIStore((s) => s.editorFocusRequested);
   const [isDirty, setIsDirty] = useState(false);
   const savedBodyRef = useRef(prompt.body);
 
@@ -25,6 +27,13 @@ export function PromptEditor({ prompt }: Props) {
   useEffect(() => {
     promptRef.current = prompt;
   }, [prompt]);
+
+  // Focus the editor when requested (e.g. ArrowRight from prompt list)
+  useEffect(() => {
+    if (editorFocusRequested > 0 && viewRef.current) {
+      viewRef.current.focus();
+    }
+  }, [editorFocusRequested]);
 
   const handleSave = useCallback(
     (view: EditorView) => {

@@ -2,8 +2,10 @@ import { useEffect, useState, useCallback, useRef, type KeyboardEvent } from "re
 import { usePromptStore } from "../../stores/usePromptStore";
 import { useFilterStore } from "../../stores/useFilterStore";
 import { useUIStore } from "../../stores/useUIStore";
+import { useStagingStore } from "../../stores/useStagingStore";
 import { PromptListItem } from "./PromptListItem";
 import { SearchBar } from "./SearchBar";
+import * as api from "../../lib/tauri";
 
 export function PromptListPanel() {
   const prompts = usePromptStore((s) => s.prompts);
@@ -13,6 +15,9 @@ export function PromptListPanel() {
   const searchResults = useFilterStore((s) => s.searchResults);
   const activeFilters = useFilterStore((s) => s.activeFilters);
   const promptListFocusRequested = useUIStore((s) => s.promptListFocusRequested);
+  const requestEditorFocus = useUIStore((s) => s.requestEditorFocus);
+  const isStaging = useStagingStore((s) => s.isStaging);
+  const insertPromptBody = useStagingStore((s) => s.insertPromptBody);
   const [focusedIndex, setFocusedIndex] = useState(-1);
   const listRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -61,11 +66,22 @@ export function PromptListPanel() {
       } else if (e.key === "ArrowUp" || e.key === "k") {
         e.preventDefault();
         setFocusedIndex((prev) => (prev > 0 ? prev - 1 : 0));
+      } else if (e.key === "ArrowRight") {
+        // Move focus to the editor/staging panel
+        e.preventDefault();
+        requestEditorFocus();
       } else if ((e.key === "Enter" || e.key === "l") && focusedIndex >= 0) {
-        // Enter or l to open the prompt (l = move right into editor)
         e.preventDefault();
         const p = displayedPrompts[focusedIndex];
-        if (p) selectPrompt(p.file_path);
+        if (!p) return;
+        if (isStaging) {
+          // In staging mode: insert the prompt's body into the staging editor
+          api.getPrompt(p.file_path).then((prompt) => {
+            insertPromptBody(prompt.body);
+          });
+        } else {
+          selectPrompt(p.file_path);
+        }
       } else if (e.key === "g" && !e.ctrlKey) {
         // gg to go to top (just g goes to top for simplicity)
         e.preventDefault();

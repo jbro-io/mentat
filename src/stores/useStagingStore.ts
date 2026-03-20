@@ -8,10 +8,13 @@ interface StagingStore {
   workingBody: string;
   variableValues: Record<string, string>;
   isStaging: boolean;
+  pendingInsert: string | null; // text waiting to be inserted into the editor
 
   stagePrompt: (prompt: Prompt) => void;
   setVariableValue: (name: string, value: string) => void;
   setWorkingBody: (body: string) => void;
+  insertPromptBody: (body: string) => void;
+  clearPendingInsert: () => void;
   dispatch: (mode: "clipboard") => Promise<void>;
   clearStaging: () => void;
 }
@@ -21,6 +24,7 @@ export const useStagingStore = create<StagingStore>((set, get) => ({
   workingBody: "",
   variableValues: {},
   isStaging: false,
+  pendingInsert: null,
 
   stagePrompt: (prompt: Prompt) => {
     const defaults: Record<string, string> = {};
@@ -28,7 +32,6 @@ export const useStagingStore = create<StagingStore>((set, get) => ({
       defaults[name] = def.default ?? "";
     }
 
-    // Overlay project defaults if an active project exists
     const activeProject = useProjectStore.getState().activeProject;
     if (activeProject) {
       for (const [name, value] of Object.entries(activeProject.defaults)) {
@@ -43,6 +46,7 @@ export const useStagingStore = create<StagingStore>((set, get) => ({
       workingBody: prompt.body,
       variableValues: defaults,
       isStaging: true,
+      pendingInsert: null,
     });
   },
 
@@ -53,6 +57,14 @@ export const useStagingStore = create<StagingStore>((set, get) => ({
 
   setWorkingBody: (body: string) => {
     set({ workingBody: body });
+  },
+
+  insertPromptBody: (body: string) => {
+    set({ pendingInsert: body });
+  },
+
+  clearPendingInsert: () => {
+    set({ pendingInsert: null });
   },
 
   dispatch: async (mode: "clipboard") => {
@@ -69,6 +81,7 @@ export const useStagingStore = create<StagingStore>((set, get) => ({
       workingBody: "",
       variableValues: {},
       isStaging: false,
+      pendingInsert: null,
     });
   },
 }));

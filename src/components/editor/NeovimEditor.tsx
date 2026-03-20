@@ -5,6 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import type { Prompt } from "../../types/prompt";
 import { usePromptStore } from "../../stores/usePromptStore";
 import { useUIStore } from "../../stores/useUIStore";
+import { useStagingStore } from "../../stores/useStagingStore";
 import * as api from "../../lib/tauri";
 import "@xterm/xterm/css/xterm.css";
 
@@ -33,6 +34,9 @@ export function NeovimEditor(props: Props) {
   const updatePrompt = usePromptStore((s) => s.updatePrompt);
   const setEditorPreference = useUIStore((s) => s.setEditorPreference);
   const requestPromptListFocus = useUIStore((s) => s.requestPromptListFocus);
+  const editorFocusRequested = useUIStore((s) => s.editorFocusRequested);
+  const pendingInsert = useStagingStore((s) => s.pendingInsert);
+  const clearPendingInsert = useStagingStore((s) => s.clearPendingInsert);
 
   const body = props.prompt ? props.prompt.body : props.initialBody;
   const promptRef = useRef(props.prompt);
@@ -40,6 +44,41 @@ export function NeovimEditor(props: Props) {
   useEffect(() => {
     promptRef.current = props.prompt;
   }, [props.prompt]);
+
+  // Focus the terminal when editor focus is requested (e.g. ArrowRight from prompt list)
+  useEffect(() => {
+    if (editorFocusRequested > 0 && terminalRef.current) {
+      terminalRef.current.focus();
+    }
+  }, [editorFocusRequested]);
+
+  // When pendingInsert is set (user picked a prompt from the list while staging),
+  // send it to neovim via the PTY using bracketed paste
+  useEffect(() => {
+    if (!pendingInsert || !sidRef.current) return;
+    const sid = sidRef.current;
+    const text = "\n\n---\n\n" + pendingInsert;
+    const encoder = new TextEncoder();
+
+    // ESC (ensure normal mode) → G (end of file) → o (open line below, insert mode)
+    const setup = encoder.encode("\x1bGo");
+    // Bracketed paste: tells neovim to treat this as pasted text (no key interpretation)
+    const pasteStart = encoder.encode("\x1b[200~");
+    const pasteBody = encoder.encode(text);
+    const pasteEnd = encoder.encode("\x1b[201~");
+    // ESC back to normal mode
+    const finish = encoder.encode("\x1b");
+
+    (async () => {
+      await api.ptyWrite(sid, Array.from(setup));
+      await api.ptyWrite(sid, Array.from(pasteStart));
+      await api.ptyWrite(sid, Array.from(pasteBody));
+      await api.ptyWrite(sid, Array.from(pasteEnd));
+      await api.ptyWrite(sid, Array.from(finish));
+    })();
+
+    clearPendingInsert();
+  }, [pendingInsert, clearPendingInsert]);
 
   // Read the temp file and persist the body back to the real prompt
   const handleSaveSignal = useCallback(
