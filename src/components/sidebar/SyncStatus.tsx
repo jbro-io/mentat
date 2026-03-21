@@ -52,7 +52,7 @@ export function SyncStatus() {
   const fetchRemoteUrl = useGitStore((s) => s.fetchRemoteUrl);
 
   const [showSetup, setShowSetup] = useState(false);
-  const [urlInput, setUrlInput] = useState("");
+  const [urlInput, setUrlInput] = useState(remoteUrl ?? "");
   const [isConnecting, setIsConnecting] = useState(false);
 
   useEffect(() => {
@@ -166,7 +166,7 @@ export function SyncStatus() {
         <RefreshIcon spinning={isSyncing} />
       </button>
       <button
-        onClick={() => setShowSetup(true)}
+        onClick={() => { setUrlInput(remoteUrl ?? ""); setShowSetup(true); }}
         className="text-zinc-500 hover:text-mentat-accent transition-colors"
         title={remoteUrl || "Configure sync"}
       >
