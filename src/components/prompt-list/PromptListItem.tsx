@@ -38,13 +38,13 @@ export function PromptListItem({ prompt, isSelected, isFocused, index }: Props) 
       data-prompt-item
       onClick={handleClick}
       style={{ animationDelay: `${Math.min(index * 20, 300)}ms` }}
-      className={`w-full text-left px-3 py-2 border-b border-mentat-border/50 animate-[listItemIn_150ms_cubic-bezier(0.16,1,0.3,1)_both] transition-all duration-150 ${
+      className={`w-full text-left px-3 py-2.5 border-b border-mentat-border/50 animate-[listItemIn_150ms_cubic-bezier(0.16,1,0.3,1)_both] transition-all duration-150 ${
         isComposing && isComposeSelected
           ? "bg-mentat-accent-muted ring-1 ring-inset ring-mentat-accent/40"
           : isSelected && !isComposing
-            ? "bg-mentat-bg-raised"
+            ? "bg-mentat-bg-surface border-l-2 border-l-mentat-accent"
             : isFocused
-              ? "bg-mentat-bg-raised/70"
+              ? "bg-mentat-bg-raised"
               : "hover:bg-mentat-bg-raised/50"
       } ${isFocused && !isComposing ? "ring-1 ring-inset ring-mentat-accent/40" : ""}`}
     >

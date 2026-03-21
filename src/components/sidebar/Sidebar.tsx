@@ -4,7 +4,6 @@ import { SyncStatus } from "./SyncStatus";
 import { TagList } from "./TagList";
 import { useComposeStore } from "../../stores/useComposeStore";
 import { useFilterStore } from "../../stores/useFilterStore";
-import { useUIStore } from "../../stores/useUIStore";
 import type { PromptType } from "../../types/prompt";
 import { Button } from "../ui";
 
@@ -22,16 +21,12 @@ export function Sidebar() {
   const activeTarget = useFilterStore((s) => s.activeFilters.target);
   const setTypeFilter = useFilterStore((s) => s.setTypeFilter);
   const setTargetFilter = useFilterStore((s) => s.setTargetFilter);
-  const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
   const isComposing = useComposeStore((s) => s.isComposing);
   const toggleComposing = useComposeStore((s) => s.toggleComposing);
 
   return (
     <div className="h-full flex flex-col bg-mentat-bg border-r border-mentat-border overflow-y-auto">
       <div className="p-3 border-b border-mentat-border flex items-center justify-between">
-        <h1 className="text-sm font-semibold text-zinc-300 tracking-wide uppercase">
-          Mentat
-        </h1>
         <div className="flex items-center gap-1.5">
           <Button
             variant="ghost"
@@ -45,14 +40,6 @@ export function Sidebar() {
             title="Toggle Compose Mode"
           >
             Compose
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setNewPromptDialogOpen(true)}
-            title="New Prompt (Cmd+N)"
-          >
-            + New
           </Button>
         </div>
       </div>

@@ -39,3 +39,5 @@ export {
   TabsTrigger,
   TabsContent,
 } from "./Tabs";
+export { ListPanel } from "./ListPanel";
+export type { ListItem } from "./ListPanel";

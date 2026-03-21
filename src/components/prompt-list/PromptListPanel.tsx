@@ -1,11 +1,19 @@
-import { useEffect, useState, useCallback, useRef, type KeyboardEvent } from "react";
+import { useEffect, useMemo, type KeyboardEvent } from "react";
 import { usePromptStore } from "../../stores/usePromptStore";
 import { useFilterStore } from "../../stores/useFilterStore";
 import { useUIStore } from "../../stores/useUIStore";
 import { useStagingStore } from "../../stores/useStagingStore";
-import { PromptListItem } from "./PromptListItem";
+import { useComposeStore } from "../../stores/useComposeStore";
 import { SearchBar } from "./SearchBar";
+import { ListPanel, type ListItem } from "../ui";
 import * as api from "../../lib/tauri";
+
+const typeColors: Record<string, string> = {
+  "system-prompt": "bg-blue-900/50 text-blue-300",
+  skill: "bg-emerald-900/50 text-emerald-300",
+  template: "bg-amber-900/50 text-amber-300",
+  snippet: "bg-purple-900/50 text-purple-300",
+};
 
 export function PromptListPanel() {
   const prompts = usePromptStore((s) => s.prompts);
@@ -18,130 +26,103 @@ export function PromptListPanel() {
   const requestEditorFocus = useUIStore((s) => s.requestEditorFocus);
   const isStaging = useStagingStore((s) => s.isStaging);
   const insertPromptBody = useStagingStore((s) => s.insertPromptBody);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const listRef = useRef<HTMLDivElement>(null);
-  const containerRef = useRef<HTMLDivElement>(null);
+  const isComposing = useComposeStore((s) => s.isComposing);
+  const selectedPaths = useComposeStore((s) => s.selectedPaths);
+  const toggleSelection = useComposeStore((s) => s.toggleSelection);
 
   useEffect(() => {
     fetchPrompts(Object.keys(activeFilters).length > 0 ? activeFilters : undefined);
   }, [activeFilters, fetchPrompts]);
 
-  // When searching, show search results mapped to summaries; otherwise show filtered prompts
   const displayedPrompts = searchResults
     ? prompts.filter((p) => searchResults.some((r) => r.id === p.id))
     : prompts;
 
-  // Reset focused index when list changes
-  useEffect(() => {
-    setFocusedIndex(-1);
-  }, [displayedPrompts.length]);
+  const items: ListItem[] = useMemo(
+    () =>
+      displayedPrompts.map((prompt) => {
+        const composeIndex = selectedPaths.indexOf(prompt.file_path);
+        const isComposeSelected = composeIndex >= 0;
 
-  // Focus the prompt list when requested (e.g. after neovim exits with <leader>e)
-  useEffect(() => {
-    if (promptListFocusRequested > 0 && containerRef.current) {
-      containerRef.current.focus();
-      // If a prompt is selected, focus on it in the list
-      if (selectedPrompt) {
-        const idx = displayedPrompts.findIndex((p) => p.id === selectedPrompt.meta.id);
-        setFocusedIndex(idx >= 0 ? idx : 0);
-      } else if (displayedPrompts.length > 0) {
-        setFocusedIndex(0);
-      }
-    }
-  }, [promptListFocusRequested, selectedPrompt, displayedPrompts]);
-
-  const handleKeyDown = useCallback(
-    (e: KeyboardEvent<HTMLDivElement>) => {
-      if (displayedPrompts.length === 0) return;
-
-      // Don't capture keys when typing in the search bar
-      if ((e.target as HTMLElement).tagName === "INPUT") return;
-
-      // j/k and arrow keys for navigation
-      if (e.key === "ArrowDown" || e.key === "j") {
-        e.preventDefault();
-        setFocusedIndex((prev) =>
-          prev < displayedPrompts.length - 1 ? prev + 1 : prev
-        );
-      } else if (e.key === "ArrowUp" || e.key === "k") {
-        e.preventDefault();
-        setFocusedIndex((prev) => (prev > 0 ? prev - 1 : 0));
-      } else if (e.key === "ArrowRight") {
-        // Move focus to the editor/staging panel
-        e.preventDefault();
-        requestEditorFocus();
-      } else if ((e.key === "Enter" || e.key === "l") && focusedIndex >= 0) {
-        e.preventDefault();
-        const p = displayedPrompts[focusedIndex];
-        if (!p) return;
-        if (isStaging) {
-          // In staging mode: insert the prompt's body into the staging editor
-          api.getPrompt(p.file_path).then((prompt) => {
-            insertPromptBody(prompt.body);
-          });
-        } else {
-          selectPrompt(p.file_path);
-        }
-      } else if (e.key === "g" && !e.ctrlKey) {
-        // gg to go to top (just g goes to top for simplicity)
-        e.preventDefault();
-        setFocusedIndex(0);
-      } else if (e.key === "G") {
-        // G to go to bottom
-        e.preventDefault();
-        setFocusedIndex(displayedPrompts.length - 1);
-      } else if (e.key === "/") {
-        // / to focus search bar
-        e.preventDefault();
-        const searchInput = containerRef.current?.querySelector("input");
-        searchInput?.focus();
-      }
-    },
-    [displayedPrompts, focusedIndex, selectPrompt]
+        return {
+          id: prompt.file_path,
+          title: prompt.title,
+          subtitle: prompt.target.length > 0 ? prompt.target.join(", ") : undefined,
+          badges: (
+            <div className="flex items-center gap-1">
+              {isComposing && (
+                <span
+                  className={`flex-shrink-0 w-5 h-5 rounded border flex items-center justify-center text-[10px] font-mono ${
+                    isComposeSelected
+                      ? "bg-mentat-accent border-mentat-accent text-white"
+                      : "border-zinc-600 text-zinc-600"
+                  }`}
+                >
+                  {isComposeSelected ? composeIndex + 1 : ""}
+                </span>
+              )}
+              <span
+                className={`text-[10px] px-1.5 py-0.5 rounded ${typeColors[prompt.prompt_type] || "bg-mentat-bg-raised text-zinc-400"}`}
+              >
+                {prompt.prompt_type}
+              </span>
+              {prompt.tags.slice(0, 3).map((tag) => (
+                <span
+                  key={tag}
+                  className="text-[10px] px-1.5 py-0.5 rounded bg-mentat-bg-raised text-zinc-500"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ),
+        };
+      }),
+    [displayedPrompts, isComposing, selectedPaths],
   );
 
-  // Scroll focused item into view
-  useEffect(() => {
-    if (focusedIndex < 0 || !listRef.current) return;
-    const items = listRef.current.querySelectorAll("[data-prompt-item]");
-    const item = items[focusedIndex];
-    if (item) {
-      item.scrollIntoView({ block: "nearest" });
+  const handleSelect = (id: string) => {
+    if (isComposing) {
+      toggleSelection(id);
+    } else if (isStaging) {
+      api.getPrompt(id).then((prompt) => {
+        insertPromptBody(prompt.body);
+      });
+    } else {
+      selectPrompt(id);
     }
-  }, [focusedIndex]);
+  };
+
+  const handleKeyDown = (e: KeyboardEvent<HTMLDivElement>) => {
+    if (e.key === "ArrowRight") {
+      e.preventDefault();
+      requestEditorFocus();
+    } else if (e.key === "/") {
+      e.preventDefault();
+      const input = e.currentTarget.querySelector("input");
+      input?.focus();
+    }
+  };
 
   return (
-    <div
-      ref={containerRef}
-      className="h-full flex flex-col bg-mentat-bg"
+    <ListPanel
+      items={items}
+      selectedId={selectedPrompt?.file_path ?? null}
+      onSelect={handleSelect}
       onKeyDown={handleKeyDown}
-      tabIndex={0}
-    >
-      <div className="p-3 border-b border-mentat-border flex items-center gap-2">
-        <div className="flex-1">
-          <SearchBar />
-        </div>
-        <span className="text-[10px] text-zinc-500 whitespace-nowrap">
-          {displayedPrompts.length} prompt{displayedPrompts.length !== 1 ? "s" : ""}
-        </span>
-      </div>
-      <div className="flex-1 overflow-y-auto" ref={listRef}>
-        {displayedPrompts.length === 0 ? (
-          <div className="p-4 text-center text-zinc-600 text-sm">
-            No prompts found
+      focusRequested={promptListFocusRequested}
+      emptyMessage="No prompts found"
+      badgesPosition="right"
+      header={
+        <>
+          <div className="flex-1">
+            <SearchBar />
           </div>
-        ) : (
-          displayedPrompts.map((prompt, index) => (
-            <PromptListItem
-              key={prompt.id}
-              prompt={prompt}
-              isSelected={selectedPrompt?.meta.id === prompt.id}
-              isFocused={focusedIndex === index}
-              index={index}
-            />
-          ))
-        )}
-      </div>
-    </div>
+          <span className="text-[10px] text-zinc-500 whitespace-nowrap ml-2">
+            {displayedPrompts.length} prompt{displayedPrompts.length !== 1 ? "s" : ""}
+          </span>
+        </>
+      }
+    />
   );
 }

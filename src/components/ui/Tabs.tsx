@@ -1,5 +1,6 @@
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { forwardRef } from "react";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 
 export const Tabs = TabsPrimitive.Root;
 
@@ -8,13 +9,21 @@ export const TabsList = forwardRef<
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => {
   const classes = [
-    "flex border-b border-mentat-border bg-mentat-bg",
+    "flex border-b border-mentat-border bg-mentat-bg pl-[80px]",
     className,
   ]
     .filter(Boolean)
     .join(" ");
 
-  return <TabsPrimitive.List ref={ref} className={classes} {...props} />;
+  const handleMouseDown = (e: React.MouseEvent) => {
+    // Start window drag if clicking on empty space (not on buttons, tabs, inputs)
+    const target = e.target as HTMLElement;
+    if (!target.closest('button, a, input, select, [role="tab"]')) {
+      getCurrentWindow().startDragging();
+    }
+  };
+
+  return <TabsPrimitive.List ref={ref} className={classes} onMouseDown={handleMouseDown} {...props} />;
 });
 TabsList.displayName = "TabsList";
 

@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { AppLayout } from "./components/layout/AppLayout";
 import { CommandPalette } from "./components/command-palette/CommandPalette";
 import { NewPromptDialog } from "./components/editor/NewPromptDialog";
+import { NewScratchDialog } from "./components/scratches/NewScratchDialog";
 import { ToastContainer } from "./components/shared/Toast";
 import { useGitStore } from "./stores/useGitStore";
 import { useProjectStore } from "./stores/useProjectStore";
@@ -18,6 +19,8 @@ function App() {
   const loadSettings = useUIStore((s) => s.loadSettings);
   const newPromptDialogOpen = useUIStore((s) => s.newPromptDialogOpen);
   const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
+  const newScratchDialogOpen = useUIStore((s) => s.newScratchDialogOpen);
+  const setNewScratchDialogOpen = useUIStore((s) => s.setNewScratchDialogOpen);
 
   useEffect(() => {
     loadSettings();
@@ -36,6 +39,10 @@ function App() {
       <NewPromptDialog
         open={newPromptDialogOpen}
         onClose={() => setNewPromptDialogOpen(false)}
+      />
+      <NewScratchDialog
+        open={newScratchDialogOpen}
+        onOpenChange={setNewScratchDialogOpen}
       />
       <AppLayout />
       <ToastContainer />

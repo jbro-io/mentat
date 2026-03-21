@@ -12,6 +12,7 @@ interface UIStore {
   editorPreference: "codemirror" | "neovim";
   sidebarCollapsed: boolean;
   newPromptDialogOpen: boolean;
+  newScratchDialogOpen: boolean;
   promptListFocusRequested: number; // incremented to trigger focus
   editorFocusRequested: number;
   activeTab: string;
@@ -24,6 +25,7 @@ interface UIStore {
   setEditorPreference: (pref: "codemirror" | "neovim") => void;
   toggleSidebar: () => void;
   setNewPromptDialogOpen: (open: boolean) => void;
+  setNewScratchDialogOpen: (open: boolean) => void;
   requestPromptListFocus: () => void;
   requestEditorFocus: () => void;
   setActiveTab: (tab: string) => void;
@@ -46,10 +48,11 @@ export const useUIStore = create<UIStore>((set, get) => ({
   editorPreference: "codemirror",
   sidebarCollapsed: false,
   newPromptDialogOpen: false,
+  newScratchDialogOpen: false,
   promptListFocusRequested: 0,
   editorFocusRequested: 0,
   activeTab: "prompts",
-  tabs: ["prompts", "projects", "mcps", "scratches"],
+  tabs: ["prompts", "scratches", "projects", "mcps"],
 
   loadSettings: async () => {
     try {
@@ -80,6 +83,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   },
 
   setNewPromptDialogOpen: (open: boolean) => set({ newPromptDialogOpen: open }),
+  setNewScratchDialogOpen: (open: boolean) => set({ newScratchDialogOpen: open }),
   requestPromptListFocus: () => set((s) => ({ promptListFocusRequested: s.promptListFocusRequested + 1 })),
   requestEditorFocus: () => set((s) => ({ editorFocusRequested: s.editorFocusRequested + 1 })),
   setActiveTab: (tab: string) => set({ activeTab: tab }),
