@@ -73,10 +73,15 @@ input, textarea, .cm-content, .xterm {
   }
 }
 
-/* Focus ring for keyboard navigation */
-*:focus-visible {
+/* Focus ring for keyboard navigation — only on interactive elements, not containers */
+input:focus-visible, select:focus-visible, button:focus-visible, [role="tab"]:focus-visible {
   outline: 1px solid var(--color-accent);
   outline-offset: -1px;
+}
+
+/* Remove focus outline from list containers */
+[tabindex]:focus-visible {
+  outline: none;
 }
 
 /* Animation keyframes */

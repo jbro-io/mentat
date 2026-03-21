@@ -23,6 +23,10 @@ impl PtyManager {
     }
 
     /// Create ~/.mentat/nvim-init.lua if it doesn't already exist.
+    pub fn ensure_nvim_init_public(path: &str) {
+        Self::ensure_nvim_init(path);
+    }
+
     fn ensure_nvim_init(path: &str) {
         if std::path::Path::new(path).exists() {
             return;
@@ -70,7 +74,7 @@ vim.opt.backup = false
 vim.opt.writebackup = false
 
 vim.opt.number = true
-vim.opt.relativenumber = true
+vim.opt.relativenumber = false
 vim.opt.signcolumn = "yes"
 vim.opt.cursorline = true
 vim.opt.scrolloff = 8

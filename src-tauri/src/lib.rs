@@ -21,6 +21,10 @@ pub fn run() {
     let file_store = FileStore::new().expect("Failed to initialize file store");
     file_store.init().expect("Failed to create directory structure");
 
+    // Ensure nvim-init.lua exists
+    let home = std::env::var("HOME").unwrap_or_else(|_| "/tmp".to_string());
+    PtyManager::ensure_nvim_init_public(&format!("{}/.mentat/nvim-init.lua", home));
+
     // Auto-pull if the repo exists and has a remote (don't fail if offline)
     if git::is_git_repo(&file_store.base_path) {
         if let Ok(status) = git::git_status(&file_store.base_path) {
