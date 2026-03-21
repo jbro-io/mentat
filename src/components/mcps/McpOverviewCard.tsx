@@ -140,9 +140,9 @@ export function McpOverviewCard({
         </div>
 
         {/* Actions */}
-        {(availableProjects.length > 0 || !isGlobal) && (
+        {(!isGlobal && availableProjects.length > 0) || !isGlobal ? (
           <div className="flex items-center gap-2 pt-2 border-t border-mentat-border">
-            {availableProjects.length > 0 && (
+            {!isGlobal && availableProjects.length > 0 && (
               <Button
                 variant="secondary"
                 size="sm"
@@ -178,7 +178,7 @@ export function McpOverviewCard({
               </AlertDialog>
             )}
           </div>
-        )}
+        ) : null}
       </div>
     </div>
   );
