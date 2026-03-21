@@ -27,6 +27,7 @@ impl FileStore {
             self.base_path.join("prompts/snippets"),
             self.base_path.join("prompts/templates"),
             self.base_path.join("projects"),
+            self.base_path.join("scratches"),
             self.base_path.join(".mentat"),
         ];
         for dir in &dirs {
