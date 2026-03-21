@@ -140,6 +140,6 @@ export function ScratchEditor({ scratch }: Props) {
   }, []);
 
   return (
-    <div ref={containerRef} className="h-full w-full" style={{ backgroundColor: "#09131B" }} />
+    <div ref={containerRef} className="w-full pt-2" style={{ backgroundColor: "#09131B", height: "calc(100% - 8px)" }} />
   );
 }

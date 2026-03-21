@@ -1,5 +1,5 @@
 import { useState, useCallback, useRef, useEffect, type ChangeEvent } from "react";
-import type { Prompt, PromptType, VariableDefinition } from "../../types/prompt";
+import type { Prompt, PromptType } from "../../types/prompt";
 import { usePromptStore } from "../../stores/usePromptStore";
 import {
   Input,
@@ -28,8 +28,6 @@ const TITLE_DEBOUNCE_MS = 400;
 export function MetadataForm({ prompt }: Props) {
   const [collapsed, setCollapsed] = useState(true);
   const [tagInput, setTagInput] = useState("");
-  const [newVarName, setNewVarName] = useState("");
-  const [newVarDesc, setNewVarDesc] = useState("");
   const [localTitle, setLocalTitle] = useState(prompt.meta.title);
   const titleDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const updatePrompt = usePromptStore((s) => s.updatePrompt);
@@ -102,26 +100,6 @@ export function MetadataForm({ prompt }: Props) {
     [prompt.meta.tags, updateMeta]
   );
 
-  const handleAddVariable = useCallback(() => {
-    const name = newVarName.trim();
-    if (!name || prompt.meta.variables[name]) return;
-    const newVar: VariableDefinition = {};
-    if (newVarDesc.trim()) newVar.description = newVarDesc.trim();
-    updateMeta({
-      variables: { ...prompt.meta.variables, [name]: newVar },
-    });
-    setNewVarName("");
-    setNewVarDesc("");
-  }, [newVarName, newVarDesc, prompt.meta.variables, updateMeta]);
-
-  const handleRemoveVariable = useCallback(
-    (name: string) => {
-      const next = { ...prompt.meta.variables };
-      delete next[name];
-      updateMeta({ variables: next });
-    },
-    [prompt.meta.variables, updateMeta]
-  );
 
   return (
     <div className="border-b border-mentat-border">
@@ -223,64 +201,6 @@ export function MetadataForm({ prompt }: Props) {
               />
             </div>
 
-            {/* Variables */}
-            <div>
-              <Label>Variables</Label>
-              {Object.keys(prompt.meta.variables).length > 0 && (
-                <div className="space-y-1 mb-2">
-                  {Object.entries(prompt.meta.variables).map(([name, def]) => (
-                    <div key={name} className="flex items-center gap-2 group">
-                      <code className="text-mentat-accent">{`{{${name}}}`}</code>
-                      <span className="text-zinc-600">--</span>
-                      <span className="text-zinc-400 flex-1 truncate">
-                        {def.description || "no description"}
-                      </span>
-                      {def.default && (
-                        <span className="text-zinc-600">(default: {def.default})</span>
-                      )}
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleRemoveVariable(name)}
-                        className="p-0 text-zinc-600 hover:text-red-400 opacity-0 group-hover:opacity-100"
-                      >
-                        x
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              <div className="flex gap-2">
-                <Input
-                  type="text"
-                  value={newVarName}
-                  onChange={(e) => setNewVarName(e.target.value)}
-                  placeholder="name"
-                  className="flex-1"
-                />
-                <Input
-                  type="text"
-                  value={newVarDesc}
-                  onChange={(e) => setNewVarDesc(e.target.value)}
-                  placeholder="description"
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      e.preventDefault();
-                      handleAddVariable();
-                    }
-                  }}
-                  className="flex-1"
-                />
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={handleAddVariable}
-                  disabled={!newVarName.trim()}
-                >
-                  +
-                </Button>
-              </div>
-            </div>
           </div>
         </CollapsibleContent>
       </Collapsible>
