@@ -1,6 +1,6 @@
 import { FolderTree } from "./FolderTree";
 import { ProjectSelector } from "./ProjectSelector";
-import { SyncStatus } from "./SyncStatus";
+
 import { TagList } from "./TagList";
 import { useComposeStore } from "../../stores/useComposeStore";
 import { useFilterStore } from "../../stores/useFilterStore";
@@ -25,7 +25,7 @@ export function Sidebar() {
   const toggleComposing = useComposeStore((s) => s.toggleComposing);
 
   return (
-    <div className="h-full flex flex-col bg-mentat-bg border-r border-mentat-border overflow-y-auto">
+    <div className="h-full flex flex-col bg-mentat-bg-deep border-r border-mentat-border overflow-y-auto">
       <div className="p-3 border-b border-mentat-border flex items-center justify-between">
         <div className="flex items-center gap-1.5">
           <Button
@@ -122,8 +122,6 @@ export function Sidebar() {
         <FolderTree />
         <TagList />
       </div>
-
-      <SyncStatus />
     </div>
   );
 }

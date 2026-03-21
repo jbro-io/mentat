@@ -28,25 +28,31 @@ pub fn git_sync_status(
 }
 
 #[tauri::command]
-pub fn git_sync(
+pub async fn git_sync(
     store: State<'_, Arc<Mutex<FileStore>>>,
     search: State<'_, Arc<Mutex<SearchEngine>>>,
 ) -> Result<SyncResult, AppError> {
-    let store = store.lock().map_err(|e| AppError::Parse(e.to_string()))?;
-    let path = &store.base_path;
+    // Grab the path and release the lock immediately so the UI isn't blocked
+    let base_path = {
+        let store = store.lock().map_err(|e| AppError::Parse(e.to_string()))?;
+        store.base_path.clone()
+    };
 
-    if !git::is_git_repo(path) {
+    if !git::is_git_repo(&base_path) {
         return Err(AppError::GitError(
             "Not a git repository. Initialize git first.".to_string(),
         ));
     }
 
-    let result = git::git_sync(path)?;
+    // Run git operations without holding any locks
+    let result = git::git_sync(&base_path)?;
 
-    // Rebuild search index since files may have changed after pull
-    if let Ok(prompts) = store.list_all_prompts() {
-        if let Ok(mut engine) = search.lock() {
-            engine.rebuild_index(&prompts);
+    // Re-acquire locks to rebuild search index
+    if let Ok(store) = store.lock() {
+        if let Ok(prompts) = store.list_all_prompts() {
+            if let Ok(mut engine) = search.lock() {
+                engine.rebuild_index(&prompts);
+            }
         }
     }
 
