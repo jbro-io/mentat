@@ -1,6 +1,7 @@
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { useRef } from "react";
 import { ComposeBar } from "../compose/ComposeBar";
 import { Sidebar } from "../sidebar/Sidebar";
+import { SyncStatus } from "../sidebar/SyncStatus";
 import { PromptListPanel } from "../prompt-list/PromptListPanel";
 import { EditorPanel } from "../editor/EditorPanel";
 import { ProjectsView } from "../projects/ProjectsView";
@@ -9,25 +10,20 @@ import { ScratchesView } from "../scratches/ScratchesView";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useComposeStore } from "../../stores/useComposeStore";
 import { useUIStore } from "../../stores/useUIStore";
-import { Tabs, TabsList, TabsTrigger, TabsContent, Button } from "../ui";
-
-function ResizeHandle() {
-  return (
-    <PanelResizeHandle className="group relative w-px bg-zinc-700 hover:bg-mentat-accent-hover transition-colors duration-150">
-      <div className="absolute inset-y-0 -left-1 -right-1 z-10" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-1 h-8 rounded-full bg-zinc-600 opacity-0 group-hover:opacity-100 group-active:opacity-100 group-active:bg-mentat-accent transition-opacity" />
-    </PanelResizeHandle>
-  );
-}
+import { Tabs, TabsList, TabsTrigger, TabsContent, Button, DragHandle } from "../ui";
 
 export function AppLayout() {
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
+  const listCollapsed = useUIStore((s) => s.listCollapsed);
   const activeTab = useUIStore((s) => s.activeTab);
   const setActiveTab = useUIStore((s) => s.setActiveTab);
   const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
   const setNewScratchDialogOpen = useUIStore((s) => s.setNewScratchDialogOpen);
+  const listWidth = useUIStore((s) => s.listWidth);
+  const setListWidth = useUIStore((s) => s.setListWidth);
   const isComposing = useComposeStore((s) => s.isComposing);
   const selectedPaths = useComposeStore((s) => s.selectedPaths);
+  const promptListRef = useRef<HTMLDivElement>(null);
 
   return (
     <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
@@ -111,15 +107,22 @@ export function AppLayout() {
               </div>
             </div>
 
-            <PanelGroup direction="horizontal" className="flex-1 min-w-0 h-full">
-              <Panel defaultSize={40} minSize={20}>
+            {/* List panel with slide animation + resize handle */}
+            <div
+              ref={promptListRef}
+              className="h-full overflow-hidden transition-all duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]"
+              style={listCollapsed ? { width: 0, flex: "0 0 0px" } : { flex: `0 0 ${listWidth}px` }}
+            >
+              <div className="h-full min-w-[200px]">
                 <PromptListPanel />
-              </Panel>
-              <ResizeHandle />
-              <Panel defaultSize={60} minSize={30}>
-                <EditorPanel />
-              </Panel>
-            </PanelGroup>
+              </div>
+            </div>
+
+            {!listCollapsed && <DragHandle containerRef={promptListRef} onWidthChange={setListWidth} />}
+
+            <div className="flex-1 min-w-0 h-full">
+              <EditorPanel />
+            </div>
           </div>
           {isComposing && selectedPaths.length > 0 && <ComposeBar />}
         </div>
@@ -136,6 +139,11 @@ export function AppLayout() {
       <TabsContent value="scratches" className="flex-1 min-h-0">
         <ScratchesView />
       </TabsContent>
+
+      {/* Footer — always visible */}
+      <div className="bg-mentat-bg-deep border-t border-mentat-border">
+        <SyncStatus />
+      </div>
     </Tabs>
   );
 }

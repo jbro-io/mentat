@@ -1,11 +1,8 @@
-import { useState } from "react";
 import type { ScratchFile } from "../../lib/tauri";
 import { useScratchStore } from "../../stores/useScratchStore";
-import { NewScratchDialog } from "./NewScratchDialog";
 import {
   ListPanel,
   type ListItem,
-  Button,
   AlertDialog,
   AlertDialogTrigger,
   AlertDialogContent,
@@ -63,8 +60,6 @@ export function ScratchList() {
   const deleteScratch = useScratchStore((s) => s.deleteScratch);
   const scratchListFocusRequested = useScratchStore((s) => s.scratchListFocusRequested);
 
-  const [dialogOpen, setDialogOpen] = useState(false);
-
   const items: ListItem[] = scratches.map((scratch) => {
     const badge = LANGUAGE_BADGE[scratch.language] ?? LANGUAGE_BADGE.text;
     return {
@@ -90,7 +85,6 @@ export function ScratchList() {
   };
 
   return (
-    <>
       <ListPanel
         items={items}
         selectedId={selectedScratch?.path ?? null}
@@ -99,17 +93,10 @@ export function ScratchList() {
         emptyMessage="No scratches yet"
         badgesPosition="right"
         header={
-          <>
-            <span className="text-[10px] text-zinc-500">
-              {scratches.length} scratch{scratches.length !== 1 ? "es" : ""}
-            </span>
-            <Button variant="primary" size="sm" onClick={() => setDialogOpen(true)}>
-              + New
-            </Button>
-          </>
+          <span className="text-[10px] text-zinc-500">
+            {scratches.length} scratch{scratches.length !== 1 ? "es" : ""}
+          </span>
         }
       />
-      <NewScratchDialog open={dialogOpen} onOpenChange={setDialogOpen} />
-    </>
   );
 }

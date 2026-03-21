@@ -40,4 +40,5 @@ export {
   TabsContent,
 } from "./Tabs";
 export { ListPanel } from "./ListPanel";
+export { DragHandle } from "./DragHandle";
 export type { ListItem } from "./ListPanel";

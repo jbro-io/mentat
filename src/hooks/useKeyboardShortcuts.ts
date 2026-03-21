@@ -7,6 +7,7 @@ import { useToastStore } from "../stores/useToastStore";
 export function useKeyboardShortcuts() {
   const toggleCommandPalette = useUIStore((s) => s.toggleCommandPalette);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
+  const toggleList = useUIStore((s) => s.toggleList);
   const setEditorMode = useUIStore((s) => s.setEditorMode);
   const editorMode = useUIStore((s) => s.editorMode);
   const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
@@ -33,10 +34,16 @@ export function useKeyboardShortcuts() {
         toggleCommandPalette();
       }
 
-      // Cmd+B or Cmd+/ -- toggle sidebar
-      if (meta && (e.key === "b" || e.key === "/")) {
+      // Cmd+/ -- toggle sidebar
+      if (meta && e.key === "/") {
         e.preventDefault();
         toggleSidebar();
+      }
+
+      // Cmd+B -- toggle list panel
+      if (meta && e.key === "b" && !e.shiftKey) {
+        e.preventDefault();
+        toggleList();
       }
 
       // Cmd+E -- toggle edit/preview
@@ -67,5 +74,5 @@ export function useKeyboardShortcuts() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [toggleCommandPalette, toggleSidebar, setEditorMode, editorMode, setNewPromptDialogOpen, switchToTabByIndex, selectedPrompt, isStaging, stagePrompt, dispatch, showToast]);
+  }, [toggleCommandPalette, toggleSidebar, toggleList, setEditorMode, editorMode, setNewPromptDialogOpen, switchToTabByIndex, selectedPrompt, isStaging, stagePrompt, dispatch, showToast]);
 }
