@@ -14,6 +14,8 @@ interface UIStore {
   newPromptDialogOpen: boolean;
   promptListFocusRequested: number; // incremented to trigger focus
   editorFocusRequested: number;
+  activeTab: string;
+  tabs: string[];
 
   loadSettings: () => Promise<void>;
   toggleCommandPalette: () => void;
@@ -24,6 +26,8 @@ interface UIStore {
   setNewPromptDialogOpen: (open: boolean) => void;
   requestPromptListFocus: () => void;
   requestEditorFocus: () => void;
+  setActiveTab: (tab: string) => void;
+  switchToTabByIndex: (index: number) => void;
 }
 
 function persistSettings(state: UIStore) {
@@ -44,6 +48,8 @@ export const useUIStore = create<UIStore>((set, get) => ({
   newPromptDialogOpen: false,
   promptListFocusRequested: 0,
   editorFocusRequested: 0,
+  activeTab: "prompts",
+  tabs: ["prompts", "projects", "mcps", "scratches"],
 
   loadSettings: async () => {
     try {
@@ -76,4 +82,11 @@ export const useUIStore = create<UIStore>((set, get) => ({
   setNewPromptDialogOpen: (open: boolean) => set({ newPromptDialogOpen: open }),
   requestPromptListFocus: () => set((s) => ({ promptListFocusRequested: s.promptListFocusRequested + 1 })),
   requestEditorFocus: () => set((s) => ({ editorFocusRequested: s.editorFocusRequested + 1 })),
+  setActiveTab: (tab: string) => set({ activeTab: tab }),
+  switchToTabByIndex: (index: number) => {
+    const { tabs } = get();
+    if (index >= 0 && index < tabs.length) {
+      set({ activeTab: tabs[index] });
+    }
+  },
 }));

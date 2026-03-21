@@ -10,6 +10,7 @@ export function useKeyboardShortcuts() {
   const setEditorMode = useUIStore((s) => s.setEditorMode);
   const editorMode = useUIStore((s) => s.editorMode);
   const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
+  const switchToTabByIndex = useUIStore((s) => s.switchToTabByIndex);
   const selectedPrompt = usePromptStore((s) => s.selectedPrompt);
   const isStaging = useStagingStore((s) => s.isStaging);
   const stagePrompt = useStagingStore((s) => s.stagePrompt);
@@ -19,6 +20,12 @@ export function useKeyboardShortcuts() {
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       const meta = e.metaKey || e.ctrlKey;
+
+      // Cmd+1/2/3/... -- switch tabs
+      if (meta && e.key >= "1" && e.key <= "9") {
+        e.preventDefault();
+        switchToTabByIndex(parseInt(e.key) - 1);
+      }
 
       // Cmd+K -- command palette
       if (meta && e.key === "k") {
@@ -60,5 +67,5 @@ export function useKeyboardShortcuts() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [toggleCommandPalette, toggleSidebar, setEditorMode, editorMode, setNewPromptDialogOpen, selectedPrompt, isStaging, stagePrompt, dispatch, showToast]);
+  }, [toggleCommandPalette, toggleSidebar, setEditorMode, editorMode, setNewPromptDialogOpen, switchToTabByIndex, selectedPrompt, isStaging, stagePrompt, dispatch, showToast]);
 }

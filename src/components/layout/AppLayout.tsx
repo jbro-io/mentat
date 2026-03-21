@@ -3,8 +3,12 @@ import { ComposeBar } from "../compose/ComposeBar";
 import { Sidebar } from "../sidebar/Sidebar";
 import { PromptListPanel } from "../prompt-list/PromptListPanel";
 import { EditorPanel } from "../editor/EditorPanel";
+import { ProjectsView } from "../projects/ProjectsView";
+import { McpsView } from "../mcps/McpsView";
+import { ScratchesView } from "../scratches/ScratchesView";
 import { useComposeStore } from "../../stores/useComposeStore";
 import { useUIStore } from "../../stores/useUIStore";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../ui";
 
 function ResizeHandle() {
   return (
@@ -17,29 +21,55 @@ function ResizeHandle() {
 
 export function AppLayout() {
   const sidebarCollapsed = useUIStore((s) => s.sidebarCollapsed);
+  const activeTab = useUIStore((s) => s.activeTab);
+  const setActiveTab = useUIStore((s) => s.setActiveTab);
   const isComposing = useComposeStore((s) => s.isComposing);
   const selectedPaths = useComposeStore((s) => s.selectedPaths);
 
   return (
     <div className="h-full flex flex-col">
-      <div className="flex-1 min-h-0">
-        <PanelGroup direction="horizontal" className="h-full">
-          {!sidebarCollapsed && (
-            <>
-              <Panel defaultSize={20} minSize={15} maxSize={30}>
-                <Sidebar />
-              </Panel>
-              <ResizeHandle />
-            </>
-          )}
-          <Panel defaultSize={30} minSize={20}>
-            <PromptListPanel />
-          </Panel>
-          <ResizeHandle />
-          <Panel defaultSize={50} minSize={30}>
-            <EditorPanel />
-          </Panel>
-        </PanelGroup>
+      <div className="flex-1 min-h-0 flex">
+        {/* Sidebar with slide animation */}
+        <div
+          className="h-full overflow-hidden transition-all duration-250 ease-[cubic-bezier(0.16,1,0.3,1)]"
+          style={{ width: sidebarCollapsed ? 0 : 240, minWidth: sidebarCollapsed ? 0 : 200 }}
+        >
+          <div className="h-full w-[240px] min-w-[200px]">
+            <Sidebar />
+          </div>
+        </div>
+
+        {/* Main content */}
+        <div className="flex-1 min-w-0 h-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full flex flex-col">
+            <TabsList>
+              <TabsTrigger value="prompts">Prompts</TabsTrigger>
+              <TabsTrigger value="projects">Projects</TabsTrigger>
+              <TabsTrigger value="mcps">MCPs</TabsTrigger>
+              <TabsTrigger value="scratches">Scratches</TabsTrigger>
+            </TabsList>
+            <TabsContent value="prompts" className="flex-1 min-h-0">
+              <PanelGroup direction="horizontal" className="h-full">
+                <Panel defaultSize={40} minSize={20}>
+                  <PromptListPanel />
+                </Panel>
+                <ResizeHandle />
+                <Panel defaultSize={60} minSize={30}>
+                  <EditorPanel />
+                </Panel>
+              </PanelGroup>
+            </TabsContent>
+            <TabsContent value="projects" className="flex-1 min-h-0">
+              <ProjectsView />
+            </TabsContent>
+            <TabsContent value="mcps" className="flex-1 min-h-0">
+              <McpsView />
+            </TabsContent>
+            <TabsContent value="scratches" className="flex-1 min-h-0">
+              <ScratchesView />
+            </TabsContent>
+          </Tabs>
+        </div>
       </div>
       {isComposing && selectedPaths.length > 0 && <ComposeBar />}
     </div>

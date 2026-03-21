@@ -65,6 +65,10 @@ vim.api.nvim_create_autocmd("BufWritePost", {
   end,
 })
 
+vim.opt.swapfile = false
+vim.opt.backup = false
+vim.opt.writebackup = false
+
 vim.opt.number = true
 vim.opt.relativenumber = true
 vim.opt.signcolumn = "yes"

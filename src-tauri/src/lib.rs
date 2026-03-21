@@ -1,3 +1,4 @@
+mod claude_config;
 mod commands;
 mod error;
 mod git;
@@ -77,6 +78,16 @@ pub fn run() {
             commands::pty::pty_close,
             commands::terminal::list_terminal_sessions,
             commands::terminal::send_to_terminal,
+            commands::claude_config::list_claude_projects,
+            commands::claude_config::get_claude_project_config,
+            commands::claude_config::get_global_claude_config,
+            commands::claude_config::install_mcp_to_project,
+            commands::claude_config::install_mcp_globally,
+            commands::scratches::list_scratches,
+            commands::scratches::create_scratch,
+            commands::scratches::delete_scratch,
+            commands::scratches::read_scratch,
+            commands::scratches::write_scratch,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

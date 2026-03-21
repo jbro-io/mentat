@@ -3,6 +3,11 @@ import type { Prompt, PromptSummary, SearchResult } from "../types/prompt";
 import type { PromptFilter } from "../types/filters";
 import type { GitStatus, SyncResult } from "../types/git";
 import type { ProjectConfig, ProjectSummary } from "../types/project";
+import type {
+  ClaudeProject,
+  ClaudeProjectConfig,
+  GlobalConfig,
+} from "../types/claude-config";
 
 export async function listPrompts(filter?: PromptFilter): Promise<PromptSummary[]> {
   return invoke("list_prompts", { filter: filter ?? null });
@@ -165,4 +170,83 @@ export async function listTerminalSessions(): Promise<TerminalSession[]> {
 
 export async function sendToTerminal(sessionId: string, text: string): Promise<void> {
   return invoke("send_to_terminal", { sessionId, text });
+}
+
+// Claude Code config
+export async function listClaudeProjects(): Promise<ClaudeProject[]> {
+  return invoke("list_claude_projects");
+}
+
+export async function getClaudeProjectConfig(path: string): Promise<ClaudeProjectConfig> {
+  return invoke("get_claude_project_config", { path });
+}
+
+export async function getGlobalClaudeConfig(): Promise<GlobalConfig> {
+  return invoke("get_global_claude_config");
+}
+
+export async function installMcpToProject(
+  projectPath: string,
+  name: string,
+  command?: string,
+  args?: string[],
+  serverType?: string,
+  url?: string,
+  env?: Record<string, string>,
+): Promise<void> {
+  return invoke("install_mcp_to_project", {
+    projectPath,
+    name,
+    command: command ?? null,
+    args: args ?? null,
+    serverType: serverType ?? null,
+    url: url ?? null,
+    env: env ?? {},
+  });
+}
+
+// Scratches
+export interface ScratchFile {
+  name: string;
+  path: string;
+  language: string;
+  extension: string;
+}
+
+export async function listScratches(): Promise<ScratchFile[]> {
+  return invoke("list_scratches");
+}
+
+export async function createScratch(name: string, language: string): Promise<ScratchFile> {
+  return invoke("create_scratch", { name, language });
+}
+
+export async function deleteScratch(path: string): Promise<void> {
+  return invoke("delete_scratch", { path });
+}
+
+export async function readScratch(path: string): Promise<string> {
+  return invoke("read_scratch", { path });
+}
+
+export async function writeScratch(path: string, content: string): Promise<void> {
+  return invoke("write_scratch", { path, content });
+}
+
+export async function installMcpGlobally(
+  name: string,
+  command?: string,
+  args?: string[],
+  serverType?: string,
+  url?: string,
+  env?: Record<string, string>,
+): Promise<void> {
+  return invoke("install_mcp_globally", {
+    name,
+    command: command ?? null,
+    args: args ?? null,
+    serverType: serverType ?? null,
+    url: url ?? null,
+    env: env ?? {},
+  });
 }
