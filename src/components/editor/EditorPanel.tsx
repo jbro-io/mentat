@@ -54,7 +54,7 @@ export function EditorPanel() {
       >
         {editorMode === "edit" ? (
           editorPreference === "neovim" ? (
-            <NeovimEditor prompt={selectedPrompt} />
+            <NeovimEditor key={selectedPrompt.meta.id} prompt={selectedPrompt} />
           ) : (
             <PromptEditor prompt={selectedPrompt} />
           )

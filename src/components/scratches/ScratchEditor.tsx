@@ -14,16 +14,20 @@ interface Props {
 
 export function ScratchEditor({ scratch }: Props) {
   const containerRef = useRef<HTMLDivElement>(null);
-  const terminalRef = useRef<Terminal | null>(null);
-  const fitAddonRef = useRef<FitAddon | null>(null);
-  const ptyRef = useRef<IPty | null>(null);
-  const cleanupRef = useRef<(() => void) | null>(null);
-  const mountedRef = useRef(false);
   const requestScratchListFocus = useScratchStore((s) => s.requestScratchListFocus);
 
+  // Single effect: create terminal + PTY on mount, dispose everything on unmount.
+  // Parent uses key={scratch.path} so this fully remounts per scratch.
   useEffect(() => {
-    if (!containerRef.current || mountedRef.current) return;
-    mountedRef.current = true;
+    if (!containerRef.current) return;
+    // Capture in a const so TS knows it's non-null inside closures
+    const container: HTMLDivElement = containerRef.current;
+
+    let aborted = false;
+    let pty: IPty | null = null;
+    let dataDisp: { dispose(): void } | null = null;
+    let exitDisp: { dispose(): void } | null = null;
+    let inputDisp: { dispose(): void } | null = null;
 
     const terminal = new Terminal({
       cursorBlink: true,
@@ -40,93 +44,100 @@ export function ScratchEditor({ scratch }: Props) {
 
     const fitAddon = new FitAddon();
     terminal.loadAddon(fitAddon);
-    terminal.open(containerRef.current);
-    fitAddon.fit();
-    terminal.focus();
-    terminalRef.current = terminal;
-    fitAddonRef.current = fitAddon;
 
-    const cols = terminal.cols;
-    const rows = terminal.rows;
-
-    // Color fix regex (same as NeovimEditor)
     const colorRegex = /\x1b\[([34]8):2:(\d+):(\d+):(\d+)m/g;
     const focusSignal = "\x1b]9999;focus-prompt-list\x07";
 
-    (async () => {
-      if (!mountedRef.current) return;
+    let opened = false;
 
-      const home = await api.getEnvVar("HOME");
-
-      // Spawn nvim directly on the scratch file (no temp file)
-      const pty = spawn("/opt/homebrew/bin/nvim", [
-        "-u", `${home}/.mentat/nvim-init.lua`,
-        "--noplugin",
-        scratch.path,
-      ], { cols, rows });
-
-      ptyRef.current = pty;
-
-      const decoder = new TextDecoder();
-      const dataDisp = pty.onData((data: unknown) => {
-        let processed = Array.isArray(data)
-          ? decoder.decode(new Uint8Array(data))
-          : typeof data === "string" ? data : decoder.decode(data as Uint8Array);
-
-        // Handle focus signal (<leader>e in nvim-init.lua)
-        if (processed.includes(focusSignal)) {
-          processed = processed.replaceAll(focusSignal, "");
-          requestScratchListFocus();
+    function tryOpenAndFit() {
+      if (aborted) return;
+      if (container.clientWidth === 0 || container.clientHeight === 0) return;
+      if (!opened) {
+        try {
+          terminal.open(container);
+          opened = true;
+        } catch {
+          return;
         }
+      }
+      try { fitAddon.fit(); } catch { /* renderer not ready yet */ }
+      if (pty) {
+        try { pty.resize(terminal.cols, terminal.rows); } catch { /* */ }
+      }
+    }
 
-        if (processed.length > 0) {
-          terminal.write(processed.replace(colorRegex, "\x1b[$1;2;$2;$3;$4m"));
-        }
+    const resizeObserver = new ResizeObserver(() => tryOpenAndFit());
+    resizeObserver.observe(container);
+    tryOpenAndFit();
+
+    // Debounce spawn to handle rapid mount/unmount from fast switching
+    const spawnTimer = setTimeout(() => {
+      if (aborted) return;
+
+      (async () => {
+        if (aborted) return;
+
+        const home = await api.getEnvVar("HOME");
+        if (aborted) return;
+
+        pty = spawn("/opt/homebrew/bin/nvim", [
+          "-u", `${home}/.mentat/nvim-init.lua`,
+          "--noplugin",
+          scratch.path,
+        ], { cols: terminal.cols || 80, rows: terminal.rows || 24 });
+
+        if (aborted) { pty.kill(); pty = null; return; }
+
+        const decoder = new TextDecoder();
+        dataDisp = pty.onData((data: unknown) => {
+          if (aborted) return;
+          let processed = Array.isArray(data)
+            ? decoder.decode(new Uint8Array(data))
+            : typeof data === "string" ? data : decoder.decode(data as Uint8Array);
+
+          if (processed.includes(focusSignal)) {
+            processed = processed.replaceAll(focusSignal, "");
+            requestScratchListFocus();
+          }
+
+          if (processed.length > 0) {
+            terminal.write(processed.replace(colorRegex, "\x1b[$1;2;$2;$3;$4m"));
+          }
+        });
+
+        exitDisp = pty.onExit(() => {
+          // No special save handling — :w saves directly to the file
+        });
+
+        inputDisp = terminal.onData((data) => {
+          if (!aborted && pty) pty.write(data);
+        });
+
+        terminal.focus();
+      })().catch((err) => {
+        if (aborted) return;
+        console.error("Failed to spawn neovim for scratch:", err);
+        terminal.write(
+          `\r\n\x1b[31mFailed to start neovim: ${String(err)}\x1b[0m\r\n`
+        );
       });
-
-      const exitDisp = pty.onExit(() => {
-        // No special save handling needed — :w saves directly to the file
-      });
-
-      const inputDisp = terminal.onData((data) => {
-        pty.write(data);
-      });
-
-      const resizeObs = new ResizeObserver(() => {
-        if (fitAddonRef.current && terminalRef.current && ptyRef.current) {
-          fitAddonRef.current.fit();
-          ptyRef.current.resize(terminalRef.current.cols, terminalRef.current.rows);
-        }
-      });
-      resizeObs.observe(containerRef.current!);
-
-      cleanupRef.current = () => {
-        inputDisp.dispose();
-        dataDisp.dispose();
-        exitDisp.dispose();
-        resizeObs.disconnect();
-        pty.kill();
-        terminal.dispose();
-        mountedRef.current = false;
-        ptyRef.current = null;
-      };
-    })().catch((err) => {
-      console.error("Failed to spawn neovim for scratch:", err);
-      terminal.write(
-        `\r\n\x1b[31mFailed to start neovim: ${String(err)}\x1b[0m\r\n`
-      );
-    });
+    }, 50);
 
     return () => {
-      if (cleanupRef.current) {
-        cleanupRef.current();
-      } else {
-        terminal.dispose();
-        mountedRef.current = false;
+      aborted = true;
+      clearTimeout(spawnTimer);
+      resizeObserver.disconnect();
+      dataDisp?.dispose();
+      exitDisp?.dispose();
+      inputDisp?.dispose();
+      if (pty) {
+        try { pty.kill(); } catch { /* already exited */ }
       }
+      terminal.dispose();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [scratch.path]);
+  }, []);
 
   return (
     <div ref={containerRef} className="h-full w-full" style={{ backgroundColor: "#09131B" }} />
