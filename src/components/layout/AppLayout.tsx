@@ -7,6 +7,7 @@ import { EditorPanel } from "../editor/EditorPanel";
 import { ProjectsView } from "../projects/ProjectsView";
 import { McpsView } from "../mcps/McpsView";
 import { ScratchesView } from "../scratches/ScratchesView";
+import { ShortcutsDialog } from "../shared/ShortcutsDialog";
 import * as DropdownMenu from "@radix-ui/react-dropdown-menu";
 import { useComposeStore } from "../../stores/useComposeStore";
 import { useUIStore } from "../../stores/useUIStore";
@@ -21,6 +22,8 @@ export function AppLayout() {
   const setNewScratchDialogOpen = useUIStore((s) => s.setNewScratchDialogOpen);
   const listWidth = useUIStore((s) => s.listWidth);
   const setListWidth = useUIStore((s) => s.setListWidth);
+  const shortcutsDialogOpen = useUIStore((s) => s.shortcutsDialogOpen);
+  const setShortcutsDialogOpen = useUIStore((s) => s.setShortcutsDialogOpen);
   const isComposing = useComposeStore((s) => s.isComposing);
   const selectedPaths = useComposeStore((s) => s.selectedPaths);
   const promptListRef = useRef<HTMLDivElement>(null);
@@ -141,9 +144,21 @@ export function AppLayout() {
       </TabsContent>
 
       {/* Footer — always visible */}
-      <div className="bg-mentat-bg-deep border-t border-mentat-border">
+      <div className="bg-mentat-bg-deep border-t border-mentat-border flex items-center justify-between px-4 py-1">
+        <button
+          onClick={() => setShortcutsDialogOpen(true)}
+          className="text-zinc-500 hover:text-mentat-accent transition-colors"
+          aria-label="Keyboard shortcuts"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="2" y="4" width="20" height="16" rx="2" ry="2" />
+            <path d="M6 8h.001M10 8h.001M14 8h.001M18 8h.001M8 12h.001M12 12h.001M16 12h.001M7 16h10" />
+          </svg>
+        </button>
         <SyncStatus />
       </div>
+
+      <ShortcutsDialog open={shortcutsDialogOpen} onOpenChange={setShortcutsDialogOpen} />
     </Tabs>
   );
 }

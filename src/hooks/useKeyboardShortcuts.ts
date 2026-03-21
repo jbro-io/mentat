@@ -8,6 +8,8 @@ export function useKeyboardShortcuts() {
   const toggleCommandPalette = useUIStore((s) => s.toggleCommandPalette);
   const toggleSidebar = useUIStore((s) => s.toggleSidebar);
   const toggleList = useUIStore((s) => s.toggleList);
+  const setShortcutsDialogOpen = useUIStore((s) => s.setShortcutsDialogOpen);
+  const shortcutsDialogOpen = useUIStore((s) => s.shortcutsDialogOpen);
   const setEditorMode = useUIStore((s) => s.setEditorMode);
   const editorMode = useUIStore((s) => s.editorMode);
   const setNewPromptDialogOpen = useUIStore((s) => s.setNewPromptDialogOpen);
@@ -28,10 +30,29 @@ export function useKeyboardShortcuts() {
         switchToTabByIndex(parseInt(e.key) - 1);
       }
 
+      // Cmd+F -- focus search input and show list if collapsed
+      if (meta && e.key === "f") {
+        e.preventDefault();
+        const { listCollapsed, toggleList } = useUIStore.getState();
+        if (listCollapsed) toggleList();
+        // Use setTimeout to let the list render if it was collapsed
+        setTimeout(() => {
+          const input = document.querySelector<HTMLInputElement>('[placeholder="Search prompts..."]');
+          if (input) input.focus();
+        }, listCollapsed ? 260 : 0);
+      }
+
       // Cmd+K -- command palette
       if (meta && e.key === "k") {
         e.preventDefault();
         toggleCommandPalette();
+      }
+
+      // Cmd+? (Cmd+Shift+/) -- toggle shortcuts dialog
+      if (meta && e.key === "?") {
+        e.preventDefault();
+        setShortcutsDialogOpen(!shortcutsDialogOpen);
+        return;
       }
 
       // Cmd+/ -- toggle sidebar
@@ -74,5 +95,5 @@ export function useKeyboardShortcuts() {
 
     document.addEventListener("keydown", handleKeyDown);
     return () => document.removeEventListener("keydown", handleKeyDown);
-  }, [toggleCommandPalette, toggleSidebar, toggleList, setEditorMode, editorMode, setNewPromptDialogOpen, switchToTabByIndex, selectedPrompt, isStaging, stagePrompt, dispatch, showToast]);
+  }, [toggleCommandPalette, toggleSidebar, toggleList, setEditorMode, editorMode, setNewPromptDialogOpen, switchToTabByIndex, selectedPrompt, isStaging, stagePrompt, dispatch, showToast, setShortcutsDialogOpen, shortcutsDialogOpen]);
 }

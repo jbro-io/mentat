@@ -21,6 +21,7 @@ interface UIStore {
   projectListWidth: number;
   newPromptDialogOpen: boolean;
   newScratchDialogOpen: boolean;
+  shortcutsDialogOpen: boolean;
   promptListFocusRequested: number; // incremented to trigger focus
   editorFocusRequested: number;
   activeTab: string;
@@ -38,6 +39,7 @@ interface UIStore {
   setProjectListWidth: (width: number) => void;
   setNewPromptDialogOpen: (open: boolean) => void;
   setNewScratchDialogOpen: (open: boolean) => void;
+  setShortcutsDialogOpen: (open: boolean) => void;
   requestPromptListFocus: () => void;
   requestEditorFocus: () => void;
   setActiveTab: (tab: string) => void;
@@ -69,6 +71,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
   projectListWidth: 300,
   newPromptDialogOpen: false,
   newScratchDialogOpen: false,
+  shortcutsDialogOpen: false,
   promptListFocusRequested: 0,
   editorFocusRequested: 0,
   activeTab: "prompts",
@@ -129,6 +132,7 @@ export const useUIStore = create<UIStore>((set, get) => ({
 
   setNewPromptDialogOpen: (open: boolean) => set({ newPromptDialogOpen: open }),
   setNewScratchDialogOpen: (open: boolean) => set({ newScratchDialogOpen: open }),
+  setShortcutsDialogOpen: (open: boolean) => set({ shortcutsDialogOpen: open }),
   requestPromptListFocus: () => set((s) => ({ promptListFocusRequested: s.promptListFocusRequested + 1 })),
   requestEditorFocus: () => set((s) => ({ editorFocusRequested: s.editorFocusRequested + 1 })),
   setActiveTab: (tab: string) => set({ activeTab: tab }),
