@@ -33,3 +33,9 @@ export {
   CollapsibleTrigger,
   CollapsibleContent,
 } from "./Collapsible";
+export {
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  TabsContent,
+} from "./Tabs";
