@@ -60,7 +60,7 @@ A desktop app for managing developer prompts, Claude Code projects, MCP servers,
 
 ```bash
 # Clone the repo
-git clone https://github.com/jbro/mentat.git
+git clone https://github.com/jbro-io/mentat.git
 cd mentat
 
 # Install frontend dependencies

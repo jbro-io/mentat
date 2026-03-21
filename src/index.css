@@ -2,6 +2,7 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
+  --color-mentat-bg-deep: #060E14;
   --color-mentat-bg: #09131B;
   --color-mentat-bg-raised: #0D1B24;
   --color-mentat-bg-surface: #112230;
@@ -99,6 +100,11 @@ body {
 @keyframes slideUpIn {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
 
 @keyframes listItemIn {

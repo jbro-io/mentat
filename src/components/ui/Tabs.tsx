@@ -9,7 +9,7 @@ export const TabsList = forwardRef<
   React.ComponentPropsWithoutRef<typeof TabsPrimitive.List>
 >(({ className, ...props }, ref) => {
   const classes = [
-    "flex border-b border-mentat-border bg-mentat-bg pl-[80px]",
+    "flex border-b border-mentat-border bg-mentat-bg-deep pl-[80px]",
     className,
   ]
     .filter(Boolean)

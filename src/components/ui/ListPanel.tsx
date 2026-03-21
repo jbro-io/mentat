@@ -90,7 +90,7 @@ export function ListPanel({
   return (
     <div
       ref={containerRef}
-      className="h-full flex flex-col bg-mentat-bg"
+      className="h-full flex flex-col bg-mentat-bg-deep"
       onKeyDown={handleKeyDown}
       tabIndex={0}
     >
